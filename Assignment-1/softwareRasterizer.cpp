@@ -12,6 +12,10 @@ SoftwareRasterizer::SoftwareRasterizer(int *pFrameWidth, int *pFrameHeight, int 
 
 // Initialize SDL parameters
 bool SoftwareRasterizer::initializeSDL(std::string windowTitle) {
+    if (mSDLActive) {
+        printf("SDL is already initialized!\n");
+        return true;
+    }
     mSDLActive = true;
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -36,13 +40,19 @@ void SoftwareRasterizer::terminateSDL() {
         SDL_DestroyWindow(mPWindow);
         SDL_Quit();
         mSDLActive = false;
+    } else {
+        printf("Could not free resources. SDL was not intialized properly to begin with!\n");
     }
 }
 
 // Draw framebuffer to screen/window
 void SoftwareRasterizer::draw() {
-    SDL_BlitScaled(mPFramebuffer, NULL, mPWindowSurface, NULL);
-    SDL_UpdateWindowSurface(mPWindow);
+    if (mSDLActive) {
+        SDL_BlitScaled(mPFramebuffer, NULL, mPWindowSurface, NULL);
+        SDL_UpdateWindowSurface(mPWindow);
+    } else {
+        printf("Could not draw framebuffer. SDL not initialized properly!\n");
+    }
 }
 
 // Get framebuffer width
