@@ -1,6 +1,10 @@
+#ifndef __SOFTWARE_RASTERIZER_H__
+#define __SOFTWARE_RASTERIZER_H__
+
+#include <stdio.h>
+#include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <string>
 
 class SoftwareRasterizer {
     private:
@@ -36,7 +40,7 @@ class SoftwareRasterizer {
         // Free SDL parameters and close SDL
         void terminateSDL();
         // Draw framebuffer to screen/window
-        void draw();
+        void drawFrameBuffer();
         // Getters
         int getFrameWidth();
         int getFrameHeight();
@@ -46,3 +50,5 @@ class SoftwareRasterizer {
         bool setFrameHeight(int);
         bool setDisplayScale(int);
 };
+
+#endif // __SOFTWARE_RASTERIZER_H__

@@ -46,7 +46,7 @@ void SoftwareRasterizer::terminateSDL() {
 }
 
 // Draw framebuffer to screen/window
-void SoftwareRasterizer::draw() {
+void SoftwareRasterizer::drawFrameBuffer() {
     if (mSDLActive) {
         SDL_BlitScaled(mPFramebuffer, NULL, mPWindowSurface, NULL);
         SDL_UpdateWindowSurface(mPWindow);
