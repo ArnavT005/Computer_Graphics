@@ -13,6 +13,8 @@ SoftwareRasterizer::SoftwareRasterizer(int *pFrameWidth, int *pFrameHeight, int 
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
     mScreenWidth = mFrameWidth * mDisplayScale;
     mScreenHeight = mFrameHeight * mDisplayScale;
+    float normalized2DToFramebufferArray[] = {mFrameWidth / 2.0f, 0, 0, 0, mFrameHeight / 2.0f, 0, mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1};
+    mNormalized2DToFramebufferMatrix = glm::make_mat3(normalized2DToFramebufferArray);
     mSDLActive = false;
 }
 
@@ -70,6 +72,57 @@ void SoftwareRasterizer::saveFramebuffer(std::string outputFile) {
     }
 }
 
+// Clear framebuffer
+void SoftwareRasterizer::clearFramebuffer(glm::vec4 normalizedColor) {
+    Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
+    SDL_PixelFormat *format = mPFramebuffer->format;
+    glm::vec4 color = 255.0f * normalizedColor;
+    for (int i = 0; i < mFrameWidth; i ++) {
+        for (int j = 0; j < mFrameHeight; j ++) {
+            pixels[i + mFrameWidth * j] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
+        }
+    }
+}
+
+// Rasterize triangle onto the framebuffer
+void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 vertices3D[], glm::vec4 normalizedColor) {
+    glm::vec3 vertices2D[3];
+    for (int i = 0; i < 3; i ++) {
+        vertices2D[i][0] = vertices3D[i][0];
+        vertices2D[i][1] = vertices3D[i][1];
+        vertices2D[i][2] = 1.0f;
+        vertices2D[i] = mNormalized2DToFramebufferMatrix * vertices2D[i];
+    }
+    Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
+    SDL_PixelFormat *format = mPFramebuffer->format;
+    glm::vec4 color = 255.0f * normalizedColor;
+    for (int i = 0; i < mFrameWidth; i ++) {
+        for (int j = 0; j < mFrameHeight; j ++) {
+            float x = i + 0.5f;
+            float y = j + 0.5f;
+            if ((x-5)*(x-5) + (y-5)*(y-5) <= 16) {
+                pixels[i + mFrameWidth * j] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
+            }
+        }
+    }
+}
+
+// Sample method
+void SoftwareRasterizer::rasterizeCircle(glm::vec4 normalizedColor) {
+    Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
+    SDL_PixelFormat *format = mPFramebuffer->format;
+    glm::vec4 color = 255.0f * normalizedColor;
+    for (int i = 0; i < mFrameWidth; i ++) {
+        for (int j = 0; j < mFrameHeight; j ++) {
+            float x = i + 0.5f;
+            float y = j + 0.5f;
+            if ((x-5)*(x-5) + (y-5)*(y-5) <= 16) {
+                pixels[i + mFrameWidth * j] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
+            }
+        }
+    }
+}
+
 // Get framebuffer width
 int SoftwareRasterizer::getFrameWidth() {
     return mFrameWidth;
@@ -93,6 +146,8 @@ bool SoftwareRasterizer::setFrameWidth(int frameWidth) {
     }
     mFrameWidth = frameWidth;
     mScreenWidth = mFrameWidth * mDisplayScale;
+    mNormalized2DToFramebufferMatrix[0][0] = mFrameWidth / 2.0f;
+    mNormalized2DToFramebufferMatrix[2][0] = mFrameWidth / 2.0f;
     return true;
 }
 
@@ -104,6 +159,8 @@ bool SoftwareRasterizer::setFrameHeight(int frameHeight) {
     }
     mFrameHeight = frameHeight;
     mScreenHeight = mFrameHeight * mDisplayScale;
+    mNormalized2DToFramebufferMatrix[1][1] = mFrameHeight / 2.0f;
+    mNormalized2DToFramebufferMatrix[2][1] = mFrameHeight / 2.0f;
     return true;
 }
 
@@ -116,5 +173,9 @@ bool SoftwareRasterizer::setDisplayScale(int displayScale) {
     mDisplayScale = displayScale;
     mScreenWidth = mFrameWidth * mDisplayScale;
     mScreenHeight = mFrameHeight * mDisplayScale;
+    mNormalized2DToFramebufferMatrix[0][0] = mFrameWidth / 2.0f;
+    mNormalized2DToFramebufferMatrix[2][0] = mFrameWidth / 2.0f;
+    mNormalized2DToFramebufferMatrix[1][1] = mFrameHeight / 2.0f;
+    mNormalized2DToFramebufferMatrix[2][1] = mFrameHeight / 2.0f;
     return true;
 }

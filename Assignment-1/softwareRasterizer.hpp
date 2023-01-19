@@ -5,6 +5,8 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class SoftwareRasterizer {
     private:
@@ -31,6 +33,9 @@ class SoftwareRasterizer {
         SDL_Window *mPWindow;
         SDL_Surface *mPWindowSurface;
 
+        // Matrices
+        glm::mat3 mNormalized2DToFramebufferMatrix;
+
     public:
         // Initialize non-SDL members
         SoftwareRasterizer(int* = nullptr, int* = nullptr, int* = nullptr);
@@ -42,6 +47,12 @@ class SoftwareRasterizer {
         void drawFramebuffer();
         // Save framebuffer as image
         void saveFramebuffer(std::string);
+        // Clear framebuffer
+        void clearFramebuffer(glm::vec4);
+        // Rasterize triangle onto the framebuffer
+        void rasterizeTriangle2D(glm::vec4[], glm::vec4);
+        // Sample method
+        void rasterizeCircle(glm::vec4);
         // Getters
         int getFrameWidth();
         int getFrameHeight();
