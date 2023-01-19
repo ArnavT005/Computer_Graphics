@@ -1,5 +1,11 @@
 #include "softwareRasterizer.hpp"
 
+// Static constants
+const int SoftwareRasterizer::FRAME_WIDTH;
+const int SoftwareRasterizer::FRAME_HEIGHT;
+const int SoftwareRasterizer::DISPLAY_SCALE;
+
+
 // Initialize non-SDL members
 SoftwareRasterizer::SoftwareRasterizer(int *pFrameWidth, int *pFrameHeight, int *pDisplayScale) {
     mFrameWidth = pFrameWidth ? *pFrameWidth : FRAME_WIDTH;
@@ -46,12 +52,21 @@ void SoftwareRasterizer::terminateSDL() {
 }
 
 // Draw framebuffer to screen/window
-void SoftwareRasterizer::drawFrameBuffer() {
+void SoftwareRasterizer::drawFramebuffer() {
     if (mSDLActive) {
         SDL_BlitScaled(mPFramebuffer, NULL, mPWindowSurface, NULL);
         SDL_UpdateWindowSurface(mPWindow);
     } else {
         printf("Could not draw framebuffer. SDL not initialized properly!\n");
+    }
+}
+
+// Save framebuffer as image
+void SoftwareRasterizer::saveFramebuffer(std::string outputFile) {
+    if (mSDLActive) {
+        IMG_SavePNG(mPFramebuffer, outputFile.c_str());
+    } else {
+        printf("Could not save framebuffer. SDL not initialized properly!\n");
     }
 }
 

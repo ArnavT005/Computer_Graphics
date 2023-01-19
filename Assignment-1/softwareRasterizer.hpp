@@ -8,10 +8,10 @@
 
 class SoftwareRasterizer {
     private:
-        // Constants
-        const int FRAME_WIDTH = 10;
-        const int FRAME_HEIGHT = 10;
-        const int DISPLAY_SCALE = 40;
+        // Static constants
+        static const int FRAME_WIDTH = 10;
+        static const int FRAME_HEIGHT = 10;
+        static const int DISPLAY_SCALE = 40;
 
         // Framebuffer dimensions
         int mFrameWidth;
@@ -24,13 +24,12 @@ class SoftwareRasterizer {
 
         // SDL active flag
         bool mSDLActive;
-        
+
         // Framebuffer surface
         SDL_Surface *mPFramebuffer;
         // Window (Screen) and its surface
         SDL_Window *mPWindow;
         SDL_Surface *mPWindowSurface;
-
 
     public:
         // Initialize non-SDL members
@@ -40,7 +39,9 @@ class SoftwareRasterizer {
         // Free SDL parameters and close SDL
         void terminateSDL();
         // Draw framebuffer to screen/window
-        void drawFrameBuffer();
+        void drawFramebuffer();
+        // Save framebuffer as image
+        void saveFramebuffer(std::string);
         // Getters
         int getFrameWidth();
         int getFrameHeight();
