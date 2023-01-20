@@ -40,8 +40,10 @@ SoftwareRasterizer::SoftwareRasterizer(int *pFrameWidth, int *pFrameHeight, int 
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
     mScreenWidth = mFrameWidth * mDisplayScale;
     mScreenHeight = mFrameHeight * mDisplayScale;
-    mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
+    mSampleCount = 1;
     mSDLActive = false;
+    mAntiAliasingActive = false;
+    mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
 }
 
 // Initialize SDL parameters
@@ -62,6 +64,7 @@ bool SoftwareRasterizer::initializeSDL(std::string windowTitle) {
         } else {
 			mPWindowSurface = SDL_GetWindowSurface(mPWindow);
             mPFramebuffer = SDL_CreateRGBSurface(0, mFrameWidth, mFrameHeight, 32, 0, 0, 0, 0);
+            mBackgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         }
     }
     return mSDLActive;
@@ -103,6 +106,7 @@ void SoftwareRasterizer::clearFramebuffer(glm::vec4 normalizedColor) {
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
     SDL_PixelFormat *format = mPFramebuffer->format;
     glm::vec4 color = 255.0f * normalizedColor;
+    mBackgroundColor = color;
     for (int i = 0; i < mFrameWidth; i ++) {
         for (int j = 0; j < mFrameHeight; j ++) {
             pixels[i + mFrameWidth * j] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
@@ -122,29 +126,48 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm
     glm::vec4 color = 255.0f * normalizedColor;
     for (int i = 0; i < mFrameWidth; i ++) {
         for (int j = 0; j < mFrameHeight; j ++) {
-            float x = i + 0.5f;
-            float y = j + 0.5f;
-            if (isInTriangle(screenVertices, glm::vec4(x, y, 0.0f, 1.0f))) {
-                pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
+            float pixelSide = 1.0f / sqrt(mSampleCount);
+            float x = i + pixelSide / 2;
+            float y = j + pixelSide / 2;
+            if (!mAntiAliasingActive) { 
+                if (isInTriangle(screenVertices, glm::vec4(x, y, 0.0f, 1.0f))) {
+                    pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
+                }
+            } else {
+                glm::vec4 colorSum(0.0f, 0.0f, 0.0f, 0.0f);
+                for(int p = 0; p < sqrt(mSampleCount); p ++, x += pixelSide) {
+                    y = j + pixelSide / 2;
+                    for (int q = 0; q < sqrt(mSampleCount); q ++, y += pixelSide) {
+                        if (isInTriangle(screenVertices, glm::vec4(x, y, 0.0f, 1.0f))) {
+                            colorSum += color;
+                        } else {
+                            colorSum += mBackgroundColor;
+                        }
+                    }
+                }
+                glm::vec4 colorAvg = colorSum / (float) mSampleCount;
+                pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) colorAvg[0], (Uint8) colorAvg[1], (Uint8) colorAvg[2], (Uint8) colorAvg[3]);
             }
         }
     }
 }
 
-// Sample method
-void SoftwareRasterizer::rasterizeCircle(glm::vec4 normalizedColor) {
-    Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
-    SDL_PixelFormat *format = mPFramebuffer->format;
-    glm::vec4 color = 255.0f * normalizedColor;
-    for (int i = 0; i < mFrameWidth; i ++) {
-        for (int j = 0; j < mFrameHeight; j ++) {
-            float x = i + 0.5f;
-            float y = j + 0.5f;
-            if ((x-5)*(x-5) + (y-5)*(y-5) <= 16) {
-                pixels[i + mFrameWidth * j] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
-            }
-        }
-    }
+// Rasterize arbitrary triangulated shape onto the framebuffer
+void SoftwareRasterizer::rasterizeArbitraryShape2D(glm::vec4 normalizedVertices[], glm::ivec3 indices[], glm::vec4 normalizedColor[], int numTriangles) {
+    
+
+}
+
+// Turn on anti-aliasing
+void SoftwareRasterizer::turnOnAntiAliasing(int sampleCount) {
+    mSampleCount = sampleCount;
+    mAntiAliasingActive = true;
+}
+
+// Turn off anti-aliasing
+void SoftwareRasterizer::turnOffAntiAliasing() {
+    mSampleCount = 1;
+    mAntiAliasingActive = false;
 }
 
 // Get framebuffer width

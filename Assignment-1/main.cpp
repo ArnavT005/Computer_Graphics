@@ -10,6 +10,8 @@ int main(int argc, char* args[]) {
         printf("Failed to initialize!");
     } else {
         bool quit = false;
+        softwareRasterizer.clearFramebuffer(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        softwareRasterizer.turnOnAntiAliasing(25);
         while (!quit) {
             handleEvents(quit);
             glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);

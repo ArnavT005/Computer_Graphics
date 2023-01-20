@@ -23,12 +23,18 @@ class SoftwareRasterizer {
         // Screen dimensions
         int mScreenWidth;   // mFrameWidth * mDisplayScale
         int mScreenHeight;  // mFrameHeight * mDisplayScale
+        // Sample count per pixel
+        int mSampleCount;
 
         // SDL active flag
         bool mSDLActive;
+        // Anti-aliasing flag
+        bool mAntiAliasingActive;
 
         // Framebuffer surface
         SDL_Surface *mPFramebuffer;
+        // Framebuffer background color
+        glm::vec4 mBackgroundColor;
         // Window (Screen) and its surface
         SDL_Window *mPWindow;
         SDL_Surface *mPWindowSurface;
@@ -56,8 +62,12 @@ class SoftwareRasterizer {
         void clearFramebuffer(glm::vec4);
         // Rasterize triangle onto the framebuffer
         void rasterizeTriangle2D(glm::vec4[], glm::vec4);
-        // Sample method
-        void rasterizeCircle(glm::vec4);
+        // Rasterize arbitrary triangulated shape onto the framebuffer
+        void rasterizeArbitraryShape2D(glm::vec4[], glm::ivec3[], glm::vec4[], int);
+        // Turn on anti-aliasing
+        void turnOnAntiAliasing(int);
+        // Turn off anti-aliasing
+        void turnOffAntiAliasing();
         // Getters
         int getFrameWidth();
         int getFrameHeight();
