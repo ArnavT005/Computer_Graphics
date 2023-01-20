@@ -72,37 +72,41 @@ bool SoftwareRasterizer::initializeSDL(std::string windowTitle) {
 
 // Free SDL parameters and close SDL
 void SoftwareRasterizer::terminateSDL() {
-    if (mSDLActive) {
-        SDL_FreeSurface(mPFramebuffer);
-        SDL_DestroyWindow(mPWindow);
-        SDL_Quit();
-        mSDLActive = false;
-    } else {
+    if (!mSDLActive) {
         printf("Could not free resources. SDL was not intialized properly to begin with!\n");
+        return;
     }
+    SDL_FreeSurface(mPFramebuffer);
+    SDL_DestroyWindow(mPWindow);
+    SDL_Quit();
+    mSDLActive = false;
 }
 
 // Draw framebuffer to screen/window
 void SoftwareRasterizer::drawFramebuffer() {
-    if (mSDLActive) {
-        SDL_BlitScaled(mPFramebuffer, NULL, mPWindowSurface, NULL);
-        SDL_UpdateWindowSurface(mPWindow);
-    } else {
+    if (!mSDLActive) {
         printf("Could not draw framebuffer. SDL not initialized properly!\n");
+        return;
     }
+    SDL_BlitScaled(mPFramebuffer, NULL, mPWindowSurface, NULL);
+    SDL_UpdateWindowSurface(mPWindow);
 }
 
 // Save framebuffer as image
 void SoftwareRasterizer::saveFramebuffer(std::string outputFile) {
-    if (mSDLActive) {
-        IMG_SavePNG(mPFramebuffer, outputFile.c_str());
-    } else {
+    if (!mSDLActive) {
         printf("Could not save framebuffer. SDL not initialized properly!\n");
+        return;
     }
+    IMG_SavePNG(mPFramebuffer, outputFile.c_str());
 }
 
 // Clear framebuffer
 void SoftwareRasterizer::clearFramebuffer(glm::vec4 normalizedColor) {
+    if (!mSDLActive) {
+        printf("Could not clear framebuffer. SDL not initialized properly!\n");
+        return;
+    }
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
     SDL_PixelFormat *format = mPFramebuffer->format;
     glm::vec4 color = 255.0f * normalizedColor;
@@ -116,6 +120,10 @@ void SoftwareRasterizer::clearFramebuffer(glm::vec4 normalizedColor) {
 
 // Rasterize triangle onto the framebuffer
 void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm::vec4 normalizedColor) {
+    if (!mSDLActive) {
+        printf("Could not rasterize given triangle. SDL not initialized properly!\n");
+        return;
+    }
     glm::vec4 screenVertices[3];
     for (int i = 0; i < 3; i ++) {
         screenVertices[i] = mNormalized2dToScreen * normalizedVertices[i];
@@ -154,6 +162,10 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm
 
 // Rasterize arbitrary triangulated shape onto the framebuffer
 void SoftwareRasterizer::rasterizeArbitraryShape2D(glm::vec4 normalizedVertices[], glm::ivec3 indices[], glm::vec4 normalizedColor[], int numTriangles) {
+    if (!mSDLActive) {
+        printf("Could not rasterize given shape. SDL not initialized properly!\n");
+        return;
+    }
     glm::vec4 screenVertices[numTriangles + 2];
     for (int i = 0; i < numTriangles + 2; i ++) {
         screenVertices[i] = mNormalized2dToScreen * normalizedVertices[i];

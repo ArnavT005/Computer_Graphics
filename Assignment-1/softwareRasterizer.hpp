@@ -26,7 +26,7 @@ class SoftwareRasterizer {
         // Sample count per pixel
         int mSampleCount;
 
-        // SDL active flag
+        // SDL flag
         bool mSDLActive;
         // Anti-aliasing flag
         bool mAntiAliasingActive;
