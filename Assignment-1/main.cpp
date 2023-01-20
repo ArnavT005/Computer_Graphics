@@ -12,8 +12,12 @@ int main(int argc, char* args[]) {
         bool quit = false;
         while (!quit) {
             handleEvents(quit);
-            float color[4] = {0.0f, 0.0f, 1.0f, 1.0f};
-			softwareRasterizer.rasterizeCircle(glm::make_vec4(color));
+            glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
+            glm::vec4 vertices[3];
+            vertices[0] = glm::vec4(-0.7f, -0.9f, 0.0f, 1.0f);
+            vertices[1] = glm::vec4(0.95f, -0.5f, 0.0f, 1.0f);
+            vertices[2] = glm::vec4(0.32f, 0.81f, 0.0f, 1.0f);
+			softwareRasterizer.rasterizeTriangle2D(vertices, color);
             softwareRasterizer.drawFramebuffer();
         }
     }

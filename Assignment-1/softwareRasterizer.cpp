@@ -128,7 +128,7 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 vertices3D[], glm::vec4 n
         for (int j = 0; j < mFrameHeight; j ++) {
             float x = i + 0.5f;
             float y = j + 0.5f;
-            if (isInTriangle(vertices2D, glm::vec3({x, y, 1.0f}))) {
+            if (isInTriangle(vertices2D, glm::vec3(x, y, 1.0f))) {
                 pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
             }
         }
