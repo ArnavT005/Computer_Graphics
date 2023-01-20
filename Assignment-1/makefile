@@ -2,13 +2,14 @@ CC = g++
 CFLAGS = `pkg-config --cflags SDL2 SDL2_image`
 LIBS = `pkg-config --libs SDL2 SDL2_image`
 CPP = main.cpp softwareRasterizer.cpp
-EXE = $(CPP:.cpp=.o)
+OBJ = $(CPP:.cpp=.o)
+EXE = rasterizer.out
 
 .PHONY: run
-run: rasterizer
-	./rasterizer
+run: $(EXE)
+	./$<
 
-rasterizer: $(EXE)
+$(EXE): $(OBJ)
 	$(CC) $(LIBS) $^ -o $@
 
 %.o: %.cpp
@@ -16,8 +17,12 @@ rasterizer: $(EXE)
 
 .PHONY: clean
 clean:
-	rm *.o
+	rm $(OBJ)
 
 .PHONY: remove
 remove:
-	rm rasterizer
+	rm $(EXE)
+
+.PHONY: destroy
+destroy:
+	rm $(OBJ) $(EXE)
