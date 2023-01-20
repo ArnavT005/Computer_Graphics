@@ -34,12 +34,12 @@ class SoftwareRasterizer {
         SDL_Surface *mPWindowSurface;
 
         // Matrices
-        glm::mat3 mNormalized2DToFramebufferMatrix;
+        glm::mat4 mNormalized2dToScreen;
 
         // Helper methods
-        int crossProduct2D(glm::vec3, glm::vec3);   // computes cross product of two 2D vectors (scalar)
-        void orientCounterClockwise(glm::vec3*);    // orients points of a triangle in counter-clockwise order
-        bool isInTriangle(glm::vec3*, glm::vec3);   // checks if a point is inside given triangle
+        int crossProduct2D(glm::vec4, glm::vec4);   // computes cross product of two 2D vectors (scalar)
+        void orientCounterClockwise(glm::vec4*);    // orients points of a triangle in counter-clockwise order
+        bool isInTriangle(glm::vec4*, glm::vec4);   // checks if a point is inside given triangle
 
     public:
         // Initialize non-SDL members

@@ -6,27 +6,27 @@ const int SoftwareRasterizer::FRAME_HEIGHT;
 const int SoftwareRasterizer::DISPLAY_SCALE;
 
 // Computes cross product of two 2D vectors (scalar)
-int SoftwareRasterizer::crossProduct2D(glm::vec3 a, glm::vec3 b) {
+int SoftwareRasterizer::crossProduct2D(glm::vec4 a, glm::vec4 b) {
     return a[0] * b[1] - a[1] * b[0];
 }
 
 
 // Orients points of a triangle in counter-clockwise order
-void SoftwareRasterizer::orientCounterClockwise(glm::vec3 *pVertices) {
-    glm::vec3 ab = pVertices[1] - pVertices[0];
-    glm::vec3 ac = pVertices[2] - pVertices[0];
+void SoftwareRasterizer::orientCounterClockwise(glm::vec4 *pVertices) {
+    glm::vec4 ab = pVertices[1] - pVertices[0];
+    glm::vec4 ac = pVertices[2] - pVertices[0];
     if (crossProduct2D(ab, ac) < 0) {
-        glm::vec3 temp = pVertices[1];
+        glm::vec4 temp = pVertices[1];
         pVertices[1] = pVertices[2];
         pVertices[2] = temp;
     }
 }
 
 // Checks if a point is inside given triangle
-bool SoftwareRasterizer::isInTriangle(glm::vec3 *pVertices, glm::vec3 point) {
-    glm::vec3 ap = point - pVertices[0], ab = pVertices[1] - pVertices[0];
-    glm::vec3 bp = point - pVertices[1], bc = pVertices[2] - pVertices[1];
-    glm::vec3 cp = point - pVertices[2], ca = pVertices[0] - pVertices[2];
+bool SoftwareRasterizer::isInTriangle(glm::vec4 *pVertices, glm::vec4 point) {
+    glm::vec4 ap = point - pVertices[0], ab = pVertices[1] - pVertices[0];
+    glm::vec4 bp = point - pVertices[1], bc = pVertices[2] - pVertices[1];
+    glm::vec4 cp = point - pVertices[2], ca = pVertices[0] - pVertices[2];
     if (crossProduct2D(ab, ap) < 0 || crossProduct2D(bc, bp) < 0 || crossProduct2D(ca, cp) < 0) {
         return false;
     }
@@ -40,8 +40,7 @@ SoftwareRasterizer::SoftwareRasterizer(int *pFrameWidth, int *pFrameHeight, int 
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
     mScreenWidth = mFrameWidth * mDisplayScale;
     mScreenHeight = mFrameHeight * mDisplayScale;
-    float normalized2DToFramebufferArray[] = {mFrameWidth / 2.0f, 0, 0, 0, mFrameHeight / 2.0f, 0, mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1};
-    mNormalized2DToFramebufferMatrix = glm::make_mat3(normalized2DToFramebufferArray);
+    mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
     mSDLActive = false;
 }
 
@@ -112,15 +111,12 @@ void SoftwareRasterizer::clearFramebuffer(glm::vec4 normalizedColor) {
 }
 
 // Rasterize triangle onto the framebuffer
-void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 vertices3D[], glm::vec4 normalizedColor) {
-    glm::vec3 vertices2D[3];
+void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm::vec4 normalizedColor) {
+    glm::vec4 screenVertices[3];
     for (int i = 0; i < 3; i ++) {
-        vertices2D[i][0] = vertices3D[i][0];
-        vertices2D[i][1] = vertices3D[i][1];
-        vertices2D[i][2] = 1.0f;
-        vertices2D[i] = mNormalized2DToFramebufferMatrix * vertices2D[i];
+        screenVertices[i] = mNormalized2dToScreen * normalizedVertices[i];
     }
-    orientCounterClockwise(vertices2D);
+    orientCounterClockwise(screenVertices);
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
     SDL_PixelFormat *format = mPFramebuffer->format;
     glm::vec4 color = 255.0f * normalizedColor;
@@ -128,7 +124,7 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 vertices3D[], glm::vec4 n
         for (int j = 0; j < mFrameHeight; j ++) {
             float x = i + 0.5f;
             float y = j + 0.5f;
-            if (isInTriangle(vertices2D, glm::vec3(x, y, 1.0f))) {
+            if (isInTriangle(screenVertices, glm::vec4(x, y, 0.0f, 1.0f))) {
                 pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
             }
         }
@@ -174,8 +170,7 @@ bool SoftwareRasterizer::setFrameWidth(int frameWidth) {
     }
     mFrameWidth = frameWidth;
     mScreenWidth = mFrameWidth * mDisplayScale;
-    mNormalized2DToFramebufferMatrix[0][0] = mFrameWidth / 2.0f;
-    mNormalized2DToFramebufferMatrix[2][0] = mFrameWidth / 2.0f;
+    mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
     return true;
 }
 
@@ -187,8 +182,7 @@ bool SoftwareRasterizer::setFrameHeight(int frameHeight) {
     }
     mFrameHeight = frameHeight;
     mScreenHeight = mFrameHeight * mDisplayScale;
-    mNormalized2DToFramebufferMatrix[1][1] = mFrameHeight / 2.0f;
-    mNormalized2DToFramebufferMatrix[2][1] = mFrameHeight / 2.0f;
+    mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
     return true;
 }
 
@@ -201,9 +195,6 @@ bool SoftwareRasterizer::setDisplayScale(int displayScale) {
     mDisplayScale = displayScale;
     mScreenWidth = mFrameWidth * mDisplayScale;
     mScreenHeight = mFrameHeight * mDisplayScale;
-    mNormalized2DToFramebufferMatrix[0][0] = mFrameWidth / 2.0f;
-    mNormalized2DToFramebufferMatrix[2][0] = mFrameWidth / 2.0f;
-    mNormalized2DToFramebufferMatrix[1][1] = mFrameHeight / 2.0f;
-    mNormalized2DToFramebufferMatrix[2][1] = mFrameHeight / 2.0f;
+    mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
     return true;
 }
