@@ -154,8 +154,53 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm
 
 // Rasterize arbitrary triangulated shape onto the framebuffer
 void SoftwareRasterizer::rasterizeArbitraryShape2D(glm::vec4 normalizedVertices[], glm::ivec3 indices[], glm::vec4 normalizedColor[], int numTriangles) {
-    
-
+    glm::vec4 screenVertices[numTriangles + 2];
+    for (int i = 0; i < numTriangles + 2; i ++) {
+        screenVertices[i] = mNormalized2dToScreen * normalizedVertices[i];
+    }
+    glm::vec4 triangle[numTriangles][3];
+    glm::vec4 color[numTriangles];
+    for (int i = 0; i < numTriangles; i ++) {
+        triangle[i][0] = screenVertices[indices[i][0]];
+        triangle[i][1] = screenVertices[indices[i][1]];
+        triangle[i][2] = screenVertices[indices[i][2]];
+        orientCounterClockwise(triangle[i]);
+        color[i] = 255.0f * normalizedColor[i];
+    }
+    Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
+    SDL_PixelFormat *format = mPFramebuffer->format;
+    for (int i = 0; i < mFrameWidth; i ++) {
+        for (int j = 0; j < mFrameHeight; j ++) {
+            float pixelSide = 1.0f / sqrt(mSampleCount);
+            float x = i + pixelSide / 2;
+            float y = j + pixelSide / 2;
+            if (!mAntiAliasingActive) {
+                for (int k = 0; k < numTriangles; k ++) {
+                    if (isInTriangle(triangle[k], glm::vec4(x, y, 0.0f, 1.0f))) {
+                        pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) color[k][0], (Uint8) color[k][1], (Uint8) color[k][2], (Uint8) color[k][3]);
+                        break;
+                    }
+                }
+            } else {
+                glm::vec4 colorSum(0.0f, 0.0f, 0.0f, 0.0f);
+                for(int p = 0; p < sqrt(mSampleCount); p ++, x += pixelSide) {
+                    y = j + pixelSide / 2;
+                    for (int q = 0; q < sqrt(mSampleCount); q ++, y += pixelSide) {
+                        glm::vec4 tempColor = mBackgroundColor;
+                        for (int k = 0; k < numTriangles; k ++) {
+                            if (isInTriangle(triangle[k], glm::vec4(x, y, 0.0f, 1.0f))) {
+                                tempColor = color[k];
+                                break;
+                            }
+                        }
+                        colorSum += tempColor;
+                    }
+                }
+                glm::vec4 colorAvg = colorSum / (float) mSampleCount;
+                pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) colorAvg[0], (Uint8) colorAvg[1], (Uint8) colorAvg[2], (Uint8) colorAvg[3]);
+            }
+        }
+    }
 }
 
 // Turn on anti-aliasing
