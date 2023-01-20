@@ -36,6 +36,10 @@ class SoftwareRasterizer {
         // Matrices
         glm::mat3 mNormalized2DToFramebufferMatrix;
 
+        // Helper methods
+        void orientCounterClockwise(glm::vec3*);    // orients points of a triangle in counter-clockwise order
+        bool isInTriangle(glm::vec3*, glm::vec3);   // checks if a point is inside given triangle
+
     public:
         // Initialize non-SDL members
         SoftwareRasterizer(int* = nullptr, int* = nullptr, int* = nullptr);

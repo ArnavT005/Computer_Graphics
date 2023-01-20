@@ -93,6 +93,7 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 vertices3D[], glm::vec4 n
         vertices2D[i][2] = 1.0f;
         vertices2D[i] = mNormalized2DToFramebufferMatrix * vertices2D[i];
     }
+    orientCounterClockwise(vertices2D);
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
     SDL_PixelFormat *format = mPFramebuffer->format;
     glm::vec4 color = 255.0f * normalizedColor;
@@ -100,8 +101,8 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 vertices3D[], glm::vec4 n
         for (int j = 0; j < mFrameHeight; j ++) {
             float x = i + 0.5f;
             float y = j + 0.5f;
-            if ((x-5)*(x-5) + (y-5)*(y-5) <= 16) {
-                pixels[i + mFrameWidth * j] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
+            if (isInTriangle(vertices2D, glm::vec3({x, y, 1.0f}))) {
+                pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
             }
         }
     }
