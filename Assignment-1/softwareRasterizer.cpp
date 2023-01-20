@@ -5,6 +5,33 @@ const int SoftwareRasterizer::FRAME_WIDTH;
 const int SoftwareRasterizer::FRAME_HEIGHT;
 const int SoftwareRasterizer::DISPLAY_SCALE;
 
+// Computes cross product of two 2D vectors (scalar)
+int SoftwareRasterizer::crossProduct2D(glm::vec3 a, glm::vec3 b) {
+    return a[0] * b[1] - a[1] * b[0];
+}
+
+
+// Orients points of a triangle in counter-clockwise order
+void SoftwareRasterizer::orientCounterClockwise(glm::vec3 *pVertices) {
+    glm::vec3 ab = pVertices[1] - pVertices[0];
+    glm::vec3 ac = pVertices[2] - pVertices[0];
+    if (crossProduct2D(ab, ac) < 0) {
+        glm::vec3 temp = pVertices[1];
+        pVertices[1] = pVertices[2];
+        pVertices[2] = temp;
+    }
+}
+
+// Checks if a point is inside given triangle
+bool SoftwareRasterizer::isInTriangle(glm::vec3 *pVertices, glm::vec3 point) {
+    glm::vec3 ap = point - pVertices[0], ab = pVertices[1] - pVertices[0];
+    glm::vec3 bp = point - pVertices[1], bc = pVertices[2] - pVertices[1];
+    glm::vec3 cp = point - pVertices[2], ca = pVertices[0] - pVertices[2];
+    if (crossProduct2D(ab, ap) < 0 || crossProduct2D(bc, bp) < 0 || crossProduct2D(ca, cp) < 0) {
+        return false;
+    }
+    return true;
+}
 
 // Initialize non-SDL members
 SoftwareRasterizer::SoftwareRasterizer(int *pFrameWidth, int *pFrameHeight, int *pDisplayScale) {

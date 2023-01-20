@@ -37,6 +37,7 @@ class SoftwareRasterizer {
         glm::mat3 mNormalized2DToFramebufferMatrix;
 
         // Helper methods
+        int crossProduct2D(glm::vec3, glm::vec3);   // computes cross product of two 2D vectors (scalar)
         void orientCounterClockwise(glm::vec3*);    // orients points of a triangle in counter-clockwise order
         bool isInTriangle(glm::vec3*, glm::vec3);   // checks if a point is inside given triangle
 
