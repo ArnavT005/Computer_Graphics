@@ -10,6 +10,16 @@ float SoftwareRasterizer::crossProduct2D(glm::vec4 a, glm::vec4 b) {
     return a[0] * b[1] - a[1] * b[0];
 }
 
+// Computes bounding box of given set of vertices
+void SoftwareRasterizer::boundingBox2D(glm::vec4 *pVertices, int numVertices, int *minX, int *maxX, int *minY, int *maxY) {
+    for (int i = 0; i < numVertices; i ++) {
+        *minX = std::min(*minX, (int) pVertices[i][0]);
+        *maxX = std::max(*maxX, (int) (pVertices[i][0] + 1));
+        *minY = std::min(*minY, (int) pVertices[i][1]);
+        *maxY = std::max(*maxY, (int) (pVertices[i][1] + 1));
+    }
+}
+
 // Orients points of a triangle in counter-clockwise order
 void SoftwareRasterizer::orientCounterClockwise(glm::vec4 *pVertices) {
     glm::vec4 ab = pVertices[1] - pVertices[0];
@@ -126,12 +136,15 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm
     for (int i = 0; i < 3; i ++) {
         screenVertices[i] = mNormalized2dToScreen * (mCustom2d * normalizedVertices[i]);
     }
+    int minX = mFrameWidth, maxX = -1;
+    int minY = mFrameHeight, maxY = -1;
+    boundingBox2D(screenVertices, 3, &minX, &maxX, &minY, &maxY);
     orientCounterClockwise(screenVertices);
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
     SDL_PixelFormat *format = mPFramebuffer->format;
     glm::vec4 color = 255.0f * normalizedColor;
-    for (int i = 0; i < mFrameWidth; i ++) {
-        for (int j = 0; j < mFrameHeight; j ++) {
+    for (int i = minX; i < maxX; i ++) {
+        for (int j = minY; j < maxY; j ++) {
             float pixelSide = 1.0f / sqrt(mSampleCount);
             float x = i + pixelSide / 2;
             float y = j + pixelSide / 2;
@@ -171,6 +184,9 @@ void SoftwareRasterizer::rasterizeArbitraryShape2D(glm::vec4 normalizedVertices[
     for (int i = 0; i < numTriangles + 2; i ++) {
         screenVertices[i] = mNormalized2dToScreen * (mCustom2d * normalizedVertices[i]);
     }
+    int minX = mFrameWidth, maxX = -1;
+    int minY = mFrameHeight, maxY = -1;
+    boundingBox2D(screenVertices, numTriangles + 2, &minX, &maxX, &minY, &maxY);
     glm::vec4 triangle[numTriangles][3];
     glm::vec4 color[numTriangles];
     for (int i = 0; i < numTriangles; i ++) {
@@ -182,8 +198,8 @@ void SoftwareRasterizer::rasterizeArbitraryShape2D(glm::vec4 normalizedVertices[
     }
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
     SDL_PixelFormat *format = mPFramebuffer->format;
-    for (int i = 0; i < mFrameWidth; i ++) {
-        for (int j = 0; j < mFrameHeight; j ++) {
+    for (int i = minX; i < maxX; i ++) {
+        for (int j = minY; j < maxY; j ++) {
             float pixelSide = 1.0f / sqrt(mSampleCount);
             float x = i + pixelSide / 2;
             float y = j + pixelSide / 2;

@@ -44,6 +44,7 @@ class SoftwareRasterizer {
 
         // Helper methods
         float crossProduct2D(glm::vec4, glm::vec4);   // computes cross product of two 2D vectors (scalar)
+        void boundingBox2D(glm::vec4*, int, int*, int*, int*, int*); // computes bounding box of given set of vertices
         void orientCounterClockwise(glm::vec4*);    // orients points of a triangle in counter-clockwise order
         bool isInTriangle(glm::vec4*, glm::vec4);   // checks if a point is inside given triangle
 
