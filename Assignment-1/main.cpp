@@ -14,12 +14,16 @@ int main(int argc, char* args[]) {
         softwareRasterizer.turnOnAntiAliasing(25);
         while (!quit) {
             handleEvents(quit);
+            
+            /* draw lecture-2 triangle (red) */
             // glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
             // glm::vec4 vertices[3];
             // vertices[0] = glm::vec4(-0.7f, -0.9f, 0.0f, 1.0f);
             // vertices[1] = glm::vec4(0.95f, -0.5f, 0.0f, 1.0f);
             // vertices[2] = glm::vec4(0.32f, 0.81f, 0.0f, 1.0f);
 			// softwareRasterizer.rasterizeTriangle2D(vertices, color);
+            
+            /* draw green tickmark */
             glm::vec4 vertices[] = {
                 glm::vec4(-0.8,  0.0, 0.0, 1.0),
                 glm::vec4(-0.4, -0.8, 0.0, 1.0),

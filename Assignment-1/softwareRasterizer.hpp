@@ -40,7 +40,9 @@ class SoftwareRasterizer {
         SDL_Surface *mPWindowSurface;
 
         // Matrices
-        glm::mat4 mNormalized2dToScreen;
+        glm::mat4 mNormalized2dToScreen; // NDC (2D) to screen (framebuffer) transformation
+        glm::mat4 mCustom2d;             // Custom transformation applied to NDC (2D) (set by user)
+        /* user should ensure that there is no clipping after transformation */
 
         // Helper methods
         int crossProduct2D(glm::vec4, glm::vec4);   // computes cross product of two 2D vectors (scalar)
@@ -72,10 +74,12 @@ class SoftwareRasterizer {
         int getFrameWidth();
         int getFrameHeight();
         int getDisplayScale();
+        glm::mat4 getCustom2d();
         // Setters
         bool setFrameWidth(int);
         bool setFrameHeight(int);
         bool setDisplayScale(int);
+        void setCustom2d(glm::mat4);
 };
 
 #endif // __SOFTWARE_RASTERIZER_H__

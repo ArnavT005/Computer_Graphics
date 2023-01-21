@@ -10,7 +10,6 @@ int SoftwareRasterizer::crossProduct2D(glm::vec4 a, glm::vec4 b) {
     return a[0] * b[1] - a[1] * b[0];
 }
 
-
 // Orients points of a triangle in counter-clockwise order
 void SoftwareRasterizer::orientCounterClockwise(glm::vec4 *pVertices) {
     glm::vec4 ab = pVertices[1] - pVertices[0];
@@ -44,6 +43,7 @@ SoftwareRasterizer::SoftwareRasterizer(int *pFrameWidth, int *pFrameHeight, int 
     mSDLActive = false;
     mAntiAliasingActive = false;
     mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
+    mCustom2d = glm::mat4(1.0f);
 }
 
 // Initialize SDL parameters
@@ -126,7 +126,7 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm
     }
     glm::vec4 screenVertices[3];
     for (int i = 0; i < 3; i ++) {
-        screenVertices[i] = mNormalized2dToScreen * normalizedVertices[i];
+        screenVertices[i] = mNormalized2dToScreen * (mCustom2d * normalizedVertices[i]);
     }
     orientCounterClockwise(screenVertices);
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
@@ -168,7 +168,7 @@ void SoftwareRasterizer::rasterizeArbitraryShape2D(glm::vec4 normalizedVertices[
     }
     glm::vec4 screenVertices[numTriangles + 2];
     for (int i = 0; i < numTriangles + 2; i ++) {
-        screenVertices[i] = mNormalized2dToScreen * normalizedVertices[i];
+        screenVertices[i] = mNormalized2dToScreen * (mCustom2d * normalizedVertices[i]);
     }
     glm::vec4 triangle[numTriangles][3];
     glm::vec4 color[numTriangles];
@@ -242,6 +242,11 @@ int SoftwareRasterizer::getDisplayScale() {
     return mDisplayScale;
 }
 
+// Get custom transformation (2D)
+glm::mat4 SoftwareRasterizer::getCustom2d() {
+    return mCustom2d;
+}
+
 // Set framebuffer width
 bool SoftwareRasterizer::setFrameWidth(int frameWidth) {
     if (mSDLActive) {
@@ -278,3 +283,8 @@ bool SoftwareRasterizer::setDisplayScale(int displayScale) {
     mNormalized2dToScreen = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, mFrameHeight / 2.0f, 1.0f)), glm::vec3(1.0f, 1.0f, 0.0f));
     return true;
 }
+
+// Set custom transformation matrix (2D)
+void SoftwareRasterizer::setCustom2d(glm::mat4 custom2d) {
+    mCustom2d = custom2d;
+} 
