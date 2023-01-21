@@ -6,7 +6,7 @@ const int SoftwareRasterizer::FRAME_HEIGHT;
 const int SoftwareRasterizer::DISPLAY_SCALE;
 
 // Computes cross product of two 2D vectors (scalar)
-int SoftwareRasterizer::crossProduct2D(glm::vec4 a, glm::vec4 b) {
+float SoftwareRasterizer::crossProduct2D(glm::vec4 a, glm::vec4 b) {
     return a[0] * b[1] - a[1] * b[0];
 }
 
@@ -64,7 +64,6 @@ bool SoftwareRasterizer::initializeSDL(std::string windowTitle) {
         } else {
 			mPWindowSurface = SDL_GetWindowSurface(mPWindow);
             mPFramebuffer = SDL_CreateRGBSurface(0, mFrameWidth, mFrameHeight, 32, 0, 0, 0, 0);
-            mBackgroundColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         }
     }
     return mSDLActive;
@@ -110,7 +109,6 @@ void SoftwareRasterizer::clearFramebuffer(glm::vec4 normalizedColor) {
     Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
     SDL_PixelFormat *format = mPFramebuffer->format;
     glm::vec4 color = 255.0f * normalizedColor;
-    mBackgroundColor = color;
     for (int i = 0; i < mFrameWidth; i ++) {
         for (int j = 0; j < mFrameHeight; j ++) {
             pixels[i + mFrameWidth * j] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
@@ -142,6 +140,9 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm
                     pixels[i + mFrameWidth * (mFrameHeight - 1 - j)] = SDL_MapRGBA(format, (Uint8) color[0], (Uint8) color[1], (Uint8) color[2], (Uint8) color[3]);
                 }
             } else {
+                Uint8 red, green, blue, alpha;
+                SDL_GetRGBA(pixels[i + mFrameWidth * (mFrameHeight - 1 - j)], format, &red, &green, &blue, &alpha);
+                glm::vec4 backgroundColor(red, green, blue, alpha);
                 glm::vec4 colorSum(0.0f, 0.0f, 0.0f, 0.0f);
                 for(int p = 0; p < sqrt(mSampleCount); p ++, x += pixelSide) {
                     y = j + pixelSide / 2;
@@ -149,7 +150,7 @@ void SoftwareRasterizer::rasterizeTriangle2D(glm::vec4 normalizedVertices[], glm
                         if (isInTriangle(screenVertices, glm::vec4(x, y, 0.0f, 1.0f))) {
                             colorSum += color;
                         } else {
-                            colorSum += mBackgroundColor;
+                            colorSum += backgroundColor;
                         }
                     }
                 }
@@ -194,11 +195,14 @@ void SoftwareRasterizer::rasterizeArbitraryShape2D(glm::vec4 normalizedVertices[
                     }
                 }
             } else {
+                Uint8 red, green, blue, alpha;
+                SDL_GetRGBA(pixels[i + mFrameWidth * (mFrameHeight - 1 - j)], format, &red, &green, &blue, &alpha);
+                glm::vec4 backgroundColor(red, green, blue, alpha);
                 glm::vec4 colorSum(0.0f, 0.0f, 0.0f, 0.0f);
                 for(int p = 0; p < sqrt(mSampleCount); p ++, x += pixelSide) {
                     y = j + pixelSide / 2;
                     for (int q = 0; q < sqrt(mSampleCount); q ++, y += pixelSide) {
-                        glm::vec4 tempColor = mBackgroundColor;
+                        glm::vec4 tempColor = backgroundColor;
                         for (int k = 0; k < numTriangles; k ++) {
                             if (isInTriangle(triangle[k], glm::vec4(x, y, 0.0f, 1.0f))) {
                                 tempColor = color[k];

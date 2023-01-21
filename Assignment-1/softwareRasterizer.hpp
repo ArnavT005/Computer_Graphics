@@ -33,8 +33,6 @@ class SoftwareRasterizer {
 
         // Framebuffer surface
         SDL_Surface *mPFramebuffer;
-        // Framebuffer background color
-        glm::vec4 mBackgroundColor;
         // Window (Screen) and its surface
         SDL_Window *mPWindow;
         SDL_Surface *mPWindowSurface;
@@ -45,7 +43,7 @@ class SoftwareRasterizer {
         /* user should ensure that there is no clipping after transformation */
 
         // Helper methods
-        int crossProduct2D(glm::vec4, glm::vec4);   // computes cross product of two 2D vectors (scalar)
+        float crossProduct2D(glm::vec4, glm::vec4);   // computes cross product of two 2D vectors (scalar)
         void orientCounterClockwise(glm::vec4*);    // orients points of a triangle in counter-clockwise order
         bool isInTriangle(glm::vec4*, glm::vec4);   // checks if a point is inside given triangle
 
