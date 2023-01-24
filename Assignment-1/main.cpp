@@ -5,6 +5,7 @@ void handleEvents(bool&);
 void rasterizeTriangle(SoftwareRasterizer*);
 void rasterizeTick(SoftwareRasterizer*);
 void rasterizeClock(SoftwareRasterizer*, Uint32);
+// void rasterizeNumbers(SoftwareRasterizer*);
 
 int main(int argc, char* args[]) {
     int frameWidth = 100, frameHeight = 100;
@@ -25,6 +26,7 @@ int main(int argc, char* args[]) {
             // rasterizeTick(&softwareRasterizer);
             // Draw clock            
             rasterizeClock(&softwareRasterizer, displayTime);
+            // rasterizeNumbers(&softwareRasterizer);
             softwareRasterizer.drawFramebuffer();
             displayTime ++;
         }
@@ -138,3 +140,26 @@ void rasterizeClock(SoftwareRasterizer *pSoftwareRasterizer, Uint32 displayTime)
 }
 
 
+
+void rasterizeNumbers(SoftwareRasterizer *pSoftwareRasterizer) {
+    glm::vec4 letterI[] = {
+        glm::vec4(-0.01, -0.3, 0.0, 1.0),
+        glm::vec4(0.01, -0.3, 0.0, 1.0),
+        glm::vec4(0.01, 0.3, 0.0, 1.0),
+        glm::vec4(-0.01, 0.3, 0.0, 1.0)
+    };
+    glm::ivec3 indices[] = {
+        glm::ivec3(0, 1, 3),
+        glm::ivec3(1, 2, 3)
+    };
+    glm::vec4 colors[] = {
+        glm::vec4(1, 0.0, 0.0, 1.0),
+        glm::vec4(1, 0.0, 0.0, 1.0)
+    };
+
+    // glm::mat4 iTranslate = glm::translate(glm::mat4(1.0f), );
+    glm::mat4 iScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.5f, 1.0f));
+    
+    pSoftwareRasterizer->setCustom2d(iScale);
+    pSoftwareRasterizer->rasterizeArbitraryShape2D(letterI, indices, colors, 2);
+}
