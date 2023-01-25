@@ -5,7 +5,7 @@ void handleEvents(bool&);
 void rasterizeTriangle(SoftwareRasterizer*);
 void rasterizeTick(SoftwareRasterizer*);
 void rasterizeClock(SoftwareRasterizer*, Uint32);
-// void rasterizeNumbers(SoftwareRasterizer*);
+void rasterizeClockGraduations(SoftwareRasterizer*);
 
 int main(int argc, char* args[]) {
     int frameWidth = 100, frameHeight = 100;
@@ -26,7 +26,7 @@ int main(int argc, char* args[]) {
             // rasterizeTick(&softwareRasterizer);
             // Draw clock            
             rasterizeClock(&softwareRasterizer, displayTime);
-            // rasterizeNumbers(&softwareRasterizer);
+            rasterizeClockGraduations(&softwareRasterizer);
             softwareRasterizer.drawFramebuffer();
             displayTime ++;
         }
@@ -141,8 +141,8 @@ void rasterizeClock(SoftwareRasterizer *pSoftwareRasterizer, Uint32 displayTime)
 
 
 
-void rasterizeNumbers(SoftwareRasterizer *pSoftwareRasterizer) {
-    glm::vec4 letterI[] = {
+void rasterizeClockGraduations(SoftwareRasterizer *pSoftwareRasterizer) {
+    glm::vec4 forks[] = {
         glm::vec4(-0.01, -0.3, 0.0, 1.0),
         glm::vec4(0.01, -0.3, 0.0, 1.0),
         glm::vec4(0.01, 0.3, 0.0, 1.0),
@@ -156,10 +156,25 @@ void rasterizeNumbers(SoftwareRasterizer *pSoftwareRasterizer) {
         glm::vec4(1, 0.0, 0.0, 1.0),
         glm::vec4(1, 0.0, 0.0, 1.0)
     };
+    glm::vec4 markingColor[] = {
+        glm::vec4(1.0, 1.0, 1.0, 1.0),
+        glm::vec4(1.0, 1.0, 1.0, 1.0)
+    };
+    float markingRadius = 0.90f;
+    glm::mat4 iScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.25f, 1.0f));
+    glm::mat4 iScaleLarge = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.5f, 1.0f));
+    for (int i = 0; i < 60; i ++) {
+        float markingAngle = glm::radians(i * 6.0f);
+        glm::mat4 markingRotate = glm::rotate(glm::mat4(1.0f), markingAngle, glm::vec3(0.0, 0.0, -1.0));
+        glm::vec3 markingCenterCoordinate(markingRadius * glm::sin(markingAngle), markingRadius * glm::cos(markingAngle), 0.0f);
+        glm::mat4 markingTranslate = glm::translate(glm::mat4(1.0f), markingCenterCoordinate);
+        if(i%5==0){
+            pSoftwareRasterizer->setCustom2d(markingTranslate * markingRotate * iScaleLarge);
+        }
+        else{
+            pSoftwareRasterizer->setCustom2d(markingTranslate * markingRotate * iScale);
+        }
+        pSoftwareRasterizer->rasterizeArbitraryShape2D(forks, indices, markingColor, 2);
+    }
 
-    // glm::mat4 iTranslate = glm::translate(glm::mat4(1.0f), );
-    glm::mat4 iScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.5f, 1.0f));
-    
-    pSoftwareRasterizer->setCustom2d(iScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(letterI, indices, colors, 2);
 }
