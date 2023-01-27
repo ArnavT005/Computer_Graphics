@@ -5,7 +5,7 @@ void handleEvents(bool&);
 void rasterizeTriangle(SoftwareRasterizer*);
 void rasterizeTick(SoftwareRasterizer*);
 void rasterizeClock(SoftwareRasterizer*, Uint32);
-// void rasterizeClockGraduations(SoftwareRasterizer*);
+void rasterizeClockGraduations(SoftwareRasterizer*);
 void rasterizeNumbers(SoftwareRasterizer*);
 
 int main(int argc, char* args[]) {
@@ -27,7 +27,7 @@ int main(int argc, char* args[]) {
             // rasterizeTick(&softwareRasterizer);
             // Draw clock            
             rasterizeClock(&softwareRasterizer, displayTime);
-            // rasterizeClockGraduations(&softwareRasterizer);
+            rasterizeClockGraduations(&softwareRasterizer);
             rasterizeNumbers(&softwareRasterizer);
             softwareRasterizer.drawFramebuffer();
             displayTime ++;
