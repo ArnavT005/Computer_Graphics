@@ -6,6 +6,11 @@
 namespace COL781 {
 	namespace Software {
 
+		namespace {
+			// software rasterizer object
+			SoftwareRasterizer softwareRasterizer;
+		}
+
 		// Forward declarations
 
 		template <> float Attribs::get(int index) const;
@@ -17,6 +22,20 @@ namespace COL781 {
 		template <> void Attribs::set(int index, glm::vec2 value);
 		template <> void Attribs::set(int index, glm::vec3 value);
 		template <> void Attribs::set(int index, glm::vec4 value);
+
+		template void Rasterizer::setUniform<float>(ShaderProgram &program, const std::string &name, float value);
+		template void Rasterizer::setUniform<int>(ShaderProgram &program, const std::string &name, int value);
+		template void Rasterizer::setUniform<glm::vec2>(ShaderProgram &program, const std::string &name, glm::vec2 value);
+		template void Rasterizer::setUniform<glm::vec3>(ShaderProgram &program, const std::string &name, glm::vec3 value);
+		template void Rasterizer::setUniform<glm::vec4>(ShaderProgram &program, const std::string &name, glm::vec4 value);
+		template void Rasterizer::setUniform<glm::mat2>(ShaderProgram &program, const std::string &name, glm::mat2 value);
+		template void Rasterizer::setUniform<glm::mat3>(ShaderProgram &program, const std::string &name, glm::mat3 value);
+		template void Rasterizer::setUniform<glm::mat4>(ShaderProgram &program, const std::string &name, glm::mat4 value);
+
+		template void Rasterizer::setVertexAttribs<float>(Object &object, int attribIndex, int n, const float* data);
+		template void Rasterizer::setVertexAttribs<glm::vec2>(Object &object, int attribIndex, int n, const glm::vec2* data);
+		template void Rasterizer::setVertexAttribs<glm::vec3>(Object &object, int attribIndex, int n, const glm::vec3* data);
+		template void Rasterizer::setVertexAttribs<glm::vec4>(Object &object, int attribIndex, int n, const glm::vec4* data);
 
 		// Built-in shaders
 
@@ -133,17 +152,12 @@ namespace COL781 {
 		}
 
 		bool Rasterizer::initialize(const std::string &title, int width, int height) {
-			if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-				std::cout << "Could not initialize SDL: " << SDL_GetError() << std::endl;
-				return false;
-			}
-			window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
-			if (!window) {
-				std::cerr << "Could not create window: " << SDL_GetError() << std::endl;
-				return false;
-			}
+			window = nullptr;
 			quit = false;
-			return true;
+			bool widthFlag = softwareRasterizer.setFrameWidth(width);
+			bool heightFlag = softwareRasterizer.setFrameHeight(height);
+			bool sdlFlag = softwareRasterizer.initializeSDL(title);
+			return widthFlag && heightFlag && sdlFlag;
 		}
 
 		bool Rasterizer::shouldQuit() {
@@ -158,73 +172,64 @@ namespace COL781 {
 		}
 
 		void Rasterizer::useShaderProgram(const ShaderProgram &program) {
-			//glUseProgram(program);
-			//glCheckError();
+			softwareRasterizer.setShader(program);
 		}
 
-		template <typename T> void Rasterizer::setUniform(const ShaderProgram &program, const std::string &name, T value) {
-			program.uniforms.set(name, value);
+		template <typename T> void Rasterizer::setUniform(ShaderProgram &program, const std::string &name, T value) {
+			program.uniforms.set<T>(name, value);
 		}
 
 		void Rasterizer::deleteShaderProgram(ShaderProgram &program) {
-			//glDeleteProgram(program);
-			//glCheckError();
+			softwareRasterizer.deleteShader();
 		}
 
 		Object Rasterizer::createObject() {
 			Object object;
-			glGenVertexArrays(1, &object.vao);
-			glCheckError();
 			return object;
 		}
 
-		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const float* data) {
-			setAttribs(object, attribIndex, n, 1, data);
-		}
-
-		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const glm::vec2* data) {
-			setAttribs(object, attribIndex, n, 2, (float*)data);
-		}
-
-		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const glm::vec3* data) {
-			setAttribs(object, attribIndex, n, 3, (float*)data);
-		}
-
-		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const glm::vec4* data) {
-			setAttribs(object, attribIndex, n, 4, (float*)data);
+		template <typename T> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const T* data) {
+			if (object.attributes.size() < n) {
+				object.attributes.resize(n);
+			}
+			for (int i = 0; i < n; i ++) {
+				object.attributes[i].set<T>(attribIndex, data[i]);
+			}
 		}
 
 		void Rasterizer::setTriangleIndices(Object &object, int n, glm::ivec3* indices) {
-			GLuint ebo;
-			glGenBuffers(1, &ebo);
-			glBindVertexArray(object.vao);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3*n*sizeof(int), (float*)indices, GL_STATIC_DRAW);
-			object.nTris = n;
-			glCheckError();
+			if (object.indices.size() < n) {
+				object.indices.resize(n);
+			}
+			for (int i = 0; i < n; i ++) {
+				object.indices[i] = indices[i];
+			}
 		}
 
 		void Rasterizer::clear(glm::vec4 color) {
-			glClearColor(color[0], color[1], color[2], color[3]);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glCheckError();
+			softwareRasterizer.clearFramebuffer(color);
 		}
 
 		void Rasterizer::drawObject(const Object &object) {
-			glBindVertexArray(object.vao);
-			glDrawElements(GL_TRIANGLES, 3*object.nTris, GL_UNSIGNED_INT, 0);
-			glCheckError();
+			ShaderProgram shader = *softwareRasterizer.getShader();
+			int n = object.indices.size() + 2;
+			glm::vec4 vertices[n], color[n];
+			Attribs attributes[n];
+			for (int i = 0; i < n; i ++) {
+				vertices[i] = shader.vs(shader.uniforms, object.attributes[i], attributes[i]);
+				color[i] = shader.fs(shader.uniforms, attributes[i]);
+			}
+			softwareRasterizer.rasterizeObject2D(vertices, object.indices.data(), color, n - 2);
 		}
 
 		void Rasterizer::show() {
-			SDL_GL_SwapWindow(window);
 			SDL_Event e;
 			while (SDL_PollEvent(&e) != 0) {
 				if(e.type == SDL_QUIT) {
 					quit = true;
 				}
 			}
-			glCheckError();
+			softwareRasterizer.drawFramebuffer();
 		}
 
 	}
