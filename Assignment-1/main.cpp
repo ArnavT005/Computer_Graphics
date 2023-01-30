@@ -6,9 +6,10 @@ void rasterizeTriangle(SoftwareRasterizer*);
 void rasterizeTick(SoftwareRasterizer*);
 void rasterizeClock(SoftwareRasterizer*, Uint32);
 void rasterizeClockGraduations(SoftwareRasterizer*);
+void rasterizeNumbers(SoftwareRasterizer*);
 
 int main(int argc, char* args[]) {
-    int frameWidth = 100, frameHeight = 100;
+    int frameWidth = 200, frameHeight = 200;
     int displayScale = 4;
     SoftwareRasterizer softwareRasterizer(&frameWidth, &frameHeight, &displayScale);
     if (!softwareRasterizer.initializeSDL()) {
@@ -27,6 +28,7 @@ int main(int argc, char* args[]) {
             // Draw clock            
             rasterizeClock(&softwareRasterizer, displayTime);
             rasterizeClockGraduations(&softwareRasterizer);
+            rasterizeNumbers(&softwareRasterizer);
             softwareRasterizer.drawFramebuffer();
             displayTime ++;
         }
@@ -178,3 +180,36 @@ void rasterizeClockGraduations(SoftwareRasterizer *pSoftwareRasterizer) {
     }
 
 }
+
+void rasterizeNumbers(SoftwareRasterizer *pSoftwareRasterizer) {
+    glm::vec4 letterI[] = {
+        glm::vec4(-0.01, -0.3, 0.0, 1.0),
+        glm::vec4(0.01, -0.3, 0.0, 1.0),
+        glm::vec4(0.01, 0.3, 0.0, 1.0),
+        glm::vec4(-0.01, 0.3, 0.0, 1.0)
+    };
+    glm::ivec3 indices[] = {
+        glm::ivec3(0, 1, 3),
+        glm::ivec3(1, 2, 3)
+    };
+    glm::vec4 colors[] = {
+        glm::vec4(1, 0.0, 0.0, 1.0),
+        glm::vec4(1, 0.0, 0.0, 1.0)
+    };
+    glm::vec4 markingColor[] = {
+        glm::vec4(1.0, 1.0, 1.0, 1.0),
+        glm::vec4(1.0, 1.0, 1.0, 1.0)
+    };
+    float markingRadius = 0.70f;
+    glm::mat4 markingScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 0.1, 1.0));
+    for (int i = 0; i < 12; i ++) {
+        float markingAngle = glm::radians(i * 30.0f);
+        glm::vec3 markingCenterCoordinate(markingRadius * glm::sin(markingAngle), markingRadius * glm::cos(markingAngle), 0.0f);
+        glm::mat4 markingTranslate = glm::translate(glm::mat4(1.0f), markingCenterCoordinate);
+        pSoftwareRasterizer->setCustom2d(markingTranslate * markingScale);
+        pSoftwareRasterizer->rasterizeArbitraryShape2D(letterI, indices, markingColor, 2);
+    }
+
+}
+
+
