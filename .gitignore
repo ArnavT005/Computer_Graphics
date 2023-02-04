@@ -1,4 +1,7 @@
-#MacOS
+# build image
+*out.png
+
+# MacOS
 *.DS_Store
 
 # Build folder
