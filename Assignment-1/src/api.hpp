@@ -6,8 +6,8 @@ public:
 
 	/** Windows **/
 
-	// Creates a window with the given title and size.
-	bool initialize(const std::string &title, int width, int height);
+	// Creates a window with the given title, size, and samples per pixel.
+	bool initialize(const std::string &title, int width, int height, int spp=1);
 
 	// Returns true if the user has requested to quit the program.
 	bool shouldQuit(); 
@@ -42,6 +42,9 @@ public:
 	void setTriangleIndices(Object &object, int n, glm::ivec3* indices);
 
 	/** Drawing **/
+	
+	// Enable depth testing.
+	void enableDepthTest();
 
 	// Clear the framebuffer, setting all pixels to the given color.
 	void clear(glm::vec4 color);
@@ -62,6 +65,9 @@ public:
 
 	// A vertex shader that applies the transformation matrix given by the uniform named 'transform'.
 	VertexShader vsTransform();
+
+	// A vertex shader that handles both transformation and color attributes.
+	VertexShader vsColorTransform();
 
 	// A fragment shader that returns a constant colour given by the uniform named 'color'.
 	FragmentShader fsConstant(); 

@@ -39,7 +39,7 @@ namespace COL781 {
 		}
 #define glCheckError() glCheckError_(__FILE__, __LINE__) 
 
-		bool Rasterizer::initialize(const std::string &title, int width, int height) {
+		bool Rasterizer::initialize(const std::string &title, int width, int height, int spp) {
 			if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 				std::cout << "Could not initialize SDL: " << SDL_GetError() << std::endl;
 				return false;
@@ -47,6 +47,8 @@ namespace COL781 {
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, spp);
 			window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_OPENGL);
 			if (!window) {
 				std::cerr << "Could not create window: " << SDL_GetError() << std::endl;
@@ -195,6 +197,12 @@ namespace COL781 {
 			object.nTris = n;
 			glCheckError();
 		}
+		
+		void Rasterizer::enableDepthTest() {
+			glEnable(GL_DEPTH_TEST);
+		    glDepthFunc(GL_LESS);   
+			glCheckError();
+		}
 
 		void Rasterizer::clear(glm::vec4 color) {
 			glClearColor(color[0], color[1], color[2], color[3]);
@@ -302,6 +310,20 @@ namespace COL781 {
 				"out vec4 color;\n"
 				"void main() {\n"
 				"	gl_Position = vertex;\n"
+				"	color = vColor;\n"
+				"}\n";
+			return createShader(GL_VERTEX_SHADER, source);
+		}
+		
+		VertexShader Rasterizer::vsColorTransform() {
+			const char *source =
+				"#version 330 core\n"
+				"layout(location = 0) in vec4 vertex;\n"
+				"layout(location = 1) in vec4 vColor;\n"
+				"uniform mat4 transform;\n"
+				"out vec4 color;\n"
+				"void main() {\n"
+				"	gl_Position = transform * vertex;\n"
 				"	color = vColor;\n"
 				"}\n";
 			return createShader(GL_VERTEX_SHADER, source);
