@@ -4,6 +4,7 @@ LIBS = `pkg-config --libs SDL2 SDL2_image`
 CPP = main.cpp softwareRasterizer.cpp
 OBJ = $(CPP:.cpp=.o)
 EXE = rasterizer.out
+IMG = out.png
 
 .PHONY: run
 run: $(EXE)
@@ -21,8 +22,8 @@ clean:
 
 .PHONY: remove
 remove:
-	rm $(EXE)
+	rm $(OBJ) $(EXE)
 
 .PHONY: destroy
 destroy:
-	rm $(OBJ) $(EXE)
+	rm $(OBJ) $(EXE) $(IMG)
