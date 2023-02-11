@@ -168,8 +168,9 @@ namespace COL781 {
 			quit = false;
 			bool widthFlag = softwareRasterizer.setFrameWidth(width);
 			bool heightFlag = softwareRasterizer.setFrameHeight(height);
+			bool sppFlag = softwareRasterizer.setSampleCount(spp);
 			bool sdlFlag = softwareRasterizer.initializeSDL(title);
-			return widthFlag && heightFlag && sdlFlag;
+			return widthFlag && heightFlag && sppFlag && sdlFlag;
 		}
 
 		bool Rasterizer::shouldQuit() {
@@ -184,7 +185,7 @@ namespace COL781 {
 		}
 
 		void Rasterizer::useShaderProgram(const ShaderProgram &program) {
-			softwareRasterizer.setShader(program);
+			softwareRasterizer.setShaderProgram(&program);
 		}
 
 		template <typename T> void Rasterizer::setUniform(ShaderProgram &program, const std::string &name, T value) {
@@ -192,7 +193,7 @@ namespace COL781 {
 		}
 
 		void Rasterizer::deleteShaderProgram(ShaderProgram &program) {
-			softwareRasterizer.deleteShader();
+			softwareRasterizer.setShaderProgram(nullptr);
 		}
 
 		Object Rasterizer::createObject() {
@@ -219,23 +220,19 @@ namespace COL781 {
 		}
 
 		void Rasterizer::enableDepthTest() {
-
+			softwareRasterizer.setDepthTesting(true);
 		}
 
 		void Rasterizer::clear(glm::vec4 color) {
-			softwareRasterizer.clearFramebuffer(color);
+			softwareRasterizer.clearBuffer(color);
 		}
 
 		void Rasterizer::drawObject(const Object &object) {
-			ShaderProgram shader = *softwareRasterizer.getShader();
-			int n = object.indices.size() + 2;
-			glm::vec4 vertices[n], color[n];
-			Attribs attributes[n];
-			for (int i = 0; i < n; i ++) {
-				vertices[i] = shader.vs(shader.uniforms, object.attributes[i], attributes[i]);
-				color[i] = shader.fs(shader.uniforms, attributes[i]);
-			}
-			softwareRasterizer.rasterizeObject2D(vertices, object.indices.data(), color, n - 2);
+			softwareRasterizer.setObject(&object);
+			softwareRasterizer.processVertices();
+			softwareRasterizer.rasterizeTriangles();
+			softwareRasterizer.processFragments();
+			softwareRasterizer.updateBuffer();
 		}
 
 		void Rasterizer::show() {
@@ -245,7 +242,8 @@ namespace COL781 {
 					quit = true;
 				}
 			}
-			softwareRasterizer.drawFramebuffer();
+			softwareRasterizer.transferBuffer();
+			softwareRasterizer.showFramebuffer();
 		}
 
 	}
