@@ -8,7 +8,7 @@ find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
-add_library(a1 src/hw.cpp)
+add_library(a1 src/hw.cpp src/sw.cpp src/softwareRasterizer.cpp)
 target_link_libraries(a1 GLEW::GLEW glm::glm OpenGL::GL SDL2::SDL2)
 
 add_executable(e1 examples/e1.cpp)

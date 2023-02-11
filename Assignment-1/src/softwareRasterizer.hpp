@@ -15,21 +15,21 @@ namespace COL781 {
         template <typename T>
         using array2D = std::vector<std::vector<T>>;
 
-        struct Attribs;
+        class Attribs;
         struct ShaderProgram;
         struct Object;
         
         struct Vertex {
             glm::vec4 position;
-            Attribs attributes;
+            Attribs *attributes;
             float wValue;
         };
 
         struct Fragment {
             glm::ivec2 pixelLocation;
             glm::ivec2 subPixelLocation;
-            Attribs attributes;
             float depth;
+            Attribs *attributes;
             glm::vec4 color;
         };
 
@@ -98,8 +98,8 @@ namespace COL781 {
                 // Helper methods
                 float crossProduct2D(glm::vec4, glm::vec4);   // computes cross product of two 2D vectors (scalar)
                 void boundingBox2D(glm::vec4*, int, int*, int*, int*, int*); // computes bounding box of given set of vertices (at pixel level)
-                void orientCounterClockwise(glm::vec4*);    // orients points of a triangle in counter-clockwise order
-                bool isInTriangle(glm::vec4*, glm::vec4);   // checks if a point is inside given triangle
+                void orientCounterClockwise(Vertex*);         // orients points of a triangle in counter-clockwise order
+                bool isInTriangle(glm::vec4*, glm::vec4);     // checks if a point is inside given triangle
                 float distance(glm::vec2, glm::vec2[2]);      // computes distance between a point and a line (2D)
                 float phi(int, glm::vec2, glm::vec4[3]);      // returns barycentric coordinate of the point w.r.t given vertex
 

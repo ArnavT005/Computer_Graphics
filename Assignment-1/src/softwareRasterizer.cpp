@@ -1,4 +1,5 @@
 #include "sw.hpp"
+#include <iostream>
 
 namespace COL781 {
     namespace Software {
@@ -26,22 +27,22 @@ namespace COL781 {
         }
 
         // Orients points of a triangle in counter-clockwise order
-        void SoftwareRasterizer::orientCounterClockwise(glm::vec4 *pVertices) {
-            glm::vec4 ab = pVertices[1] - pVertices[0];
-            glm::vec4 ac = pVertices[2] - pVertices[0];
+        void SoftwareRasterizer::orientCounterClockwise(Vertex *pVertices) {
+            glm::vec4 ab = pVertices[1].position - pVertices[0].position;
+            glm::vec4 ac = pVertices[2].position - pVertices[0].position;
             if (crossProduct2D(ab, ac) < 0) {
-                glm::vec4 temp = pVertices[1];
+                Vertex temp = pVertices[1];
                 pVertices[1] = pVertices[2];
                 pVertices[2] = temp;
             }
         }
 
-        // Checks if a point is inside given triangle
+        // Checks if a point is inside given triangle (left-handed screen system)
         bool SoftwareRasterizer::isInTriangle(glm::vec4 *pVertices, glm::vec4 point) {
             glm::vec4 ap = point - pVertices[0], ab = pVertices[1] - pVertices[0];
             glm::vec4 bp = point - pVertices[1], bc = pVertices[2] - pVertices[1];
             glm::vec4 cp = point - pVertices[2], ca = pVertices[0] - pVertices[2];
-            if (crossProduct2D(ab, ap) < 0 || crossProduct2D(bc, bp) < 0 || crossProduct2D(ca, cp) < 0) {
+            if (crossProduct2D(ab, ap) > 0 || crossProduct2D(bc, bp) > 0 || crossProduct2D(ca, cp) > 0) {
                 return false;
             }
             return true;
@@ -84,7 +85,7 @@ namespace COL781 {
             mFragments.clear();
             glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
             glm::mat4 scaleAndInvert = glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, - mFrameHeight / 2.0f, 1.0f));
-            glm::mat4 translateBackToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, mFrameHeight / 2.0f, 0.0f));
+            glm::mat4 translateBackToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, mFrameHeight, 0.0f));
             mNDC2dToFrame = translateBackToOrigin * scaleAndInvert * translateToOrigin;
             mSDLActive = false;
             mCBuffer.clear();
@@ -217,7 +218,7 @@ namespace COL781 {
         // Process vertices of an object
         void SoftwareRasterizer::processVertices() {
             for (int i = 0; i < mVertexCount; i ++) {
-                glm::vec4 temp = mPShaderProgram->vs(mPShaderProgram->uniforms, mPObject->attributes[i], mVertices[i].attributes);
+                glm::vec4 temp = mPShaderProgram->vs(mPShaderProgram->uniforms, mPObject->attributes[i], *mVertices[i].attributes);
                 mVertices[i].position = glm::vec4(temp.x / temp.w, temp.y / temp.w, temp.z / temp.w, 1.0f);
                 mVertices[i].wValue = temp.w;
             }
@@ -233,7 +234,8 @@ namespace COL781 {
 
         // Rasterize a triangle
         void SoftwareRasterizer::rasterizeTriangle(int index, Vertex vertices[3]) {
-            mFragments[index].clear();
+            orientCounterClockwise(vertices);
+            int attributesCount = vertices[0].attributes->count();
             glm::vec4 screenVertices[3];
             for (int k = 0; k < 3; k ++) {
                 screenVertices[k] = mNDC2dToFrame * vertices[k].position;
@@ -241,7 +243,6 @@ namespace COL781 {
             int minX = mFrameWidth, maxX = -1;
             int minY = mFrameHeight, maxY = -1;
             boundingBox2D(screenVertices, 3, &minX, &maxX, &minY, &maxY);
-            orientCounterClockwise(screenVertices);
             float sampleSpace = 1.0f / (mSampleSide + 1);
             for (int i = minY; i < maxY; i ++) {
                 for (int j = minX; j < maxX; j ++) {
@@ -251,9 +252,46 @@ namespace COL781 {
                             float y = i + n_y * sampleSpace;
                             if (isInTriangle(screenVertices, glm::vec4(x, y, 0.0, 1.0f))) {
                                 Fragment fragment;
-                                fragment.pixelLocation = glm::ivec2(i, j);
-                                fragment.subPixelLocation = glm::ivec2(n_y - 1, n_x - 1);
-                                // interpolate vertex attributes
+                                fragment.pixelLocation = glm::ivec2(j, i);
+                                fragment.subPixelLocation = glm::ivec2(n_x - 1, n_y - 1);
+                                fragment.attributes = new Attribs();
+                                float weight[3];
+                                float inverseZ = 0.0f;
+                                fragment.depth = 0.0f;
+                                for (int k = 0; k < 3; k ++) {
+                                    weight[k] = phi(k, glm::vec2(x, y), screenVertices);
+                                    fragment.depth += weight[k] * vertices[k].position.z;
+                                    inverseZ += weight[k] / vertices[k].wValue;
+                                }
+                                for (int a = 0; a < attributesCount; a ++) {
+                                    float temp_f = 0.0f;
+                                    glm::vec2 temp_v2 = glm::vec2(0.0f);
+                                    glm::vec3 temp_v3 = glm::vec3(0.0f);
+                                    glm::vec4 temp_v4 = glm::vec4(0.0f);
+                                    int dims = vertices[0].attributes->getDims(a);
+                                    for (int k = 0; k < 3; k ++) {
+                                        if (dims == 1) {
+                                            temp_f += weight[k] * vertices[k].attributes->get<float>(a) / vertices[k].wValue;
+                                        } else if (dims == 2) {
+                                            temp_v2 += weight[k] * vertices[k].attributes->get<glm::vec2>(a) / vertices[k].wValue;
+                                        } else if (dims == 3) {
+                                            temp_v3 += weight[k] * vertices[k].attributes->get<glm::vec3>(a) / vertices[k].wValue;
+                                        } else {
+                                            temp_v4 += weight[k] * vertices[k].attributes->get<glm::vec4>(a) / vertices[k].wValue;
+                                        }
+                                    }
+                                    if (dims == 1) {
+                                        fragment.attributes->set<float>(a, temp_f / inverseZ);
+                                    } else if (dims == 2) {
+                                        fragment.attributes->set<glm::vec2>(a, temp_v2 / inverseZ);
+                                    } else if (dims == 3) {
+                                        fragment.attributes->set<glm::vec3>(a, temp_v3 / inverseZ);
+                                    } else {
+                                        fragment.attributes->set<glm::vec4>(a, temp_v4 / inverseZ);
+                                    }
+                                }
+                                fragment.depth = (1 + fragment.depth) / 2;
+                                
                                 mFragments[index].push_back(fragment);
                             }
                         }
@@ -267,7 +305,7 @@ namespace COL781 {
             for (int i = 0; i < mTriangleCount; i ++) {
                 int fragmentCount = mFragments[i].size();
                 for (int j = 0; j < fragmentCount; j ++) {
-                    mFragments[i][j].color = mPShaderProgram->fs(mPShaderProgram->uniforms, mFragments[i][j].attributes);
+                    mFragments[i][j].color = mPShaderProgram->fs(mPShaderProgram->uniforms, *mFragments[i][j].attributes);
                 }
             }
         }
@@ -311,8 +349,24 @@ namespace COL781 {
             mScreenWidth = mFrameWidth * mDisplayScale;
             glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
             glm::mat4 scaleAndInvert = glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, - mFrameHeight / 2.0f, 1.0f));
-            glm::mat4 translateBackToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, mFrameHeight / 2.0f, 0.0f));
+            glm::mat4 translateBackToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, mFrameHeight, 0.0f));
             mNDC2dToFrame = translateBackToOrigin * scaleAndInvert * translateToOrigin;
+            mCBuffer.clear();
+            mCBuffer.resize(mFrameHeight);
+            for (int i = 0; i < mFrameHeight; i ++) {
+                mCBuffer[i].resize(mFrameWidth);
+                for (int j = 0; j < mFrameWidth; j ++) {
+                    mCBuffer[i][j].resize(mSampleSide, std::vector<glm::vec4>(mSampleSide, glm::vec4(1.0f)));
+                }
+            }
+            mZBuffer.clear();
+            mZBuffer.resize(mFrameHeight);
+            for (int i = 0; i < mFrameHeight; i ++) {
+                mZBuffer[i].resize(mFrameWidth);
+                for (int j = 0; j < mFrameWidth; j ++) {
+                    mZBuffer[i][j].resize(mSampleSide, std::vector<float>(mSampleSide, 1.0f));
+                }
+            }
             return true;
         }
 
@@ -326,8 +380,24 @@ namespace COL781 {
             mScreenHeight = mFrameHeight * mDisplayScale;
             glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f));
             glm::mat4 scaleAndInvert = glm::scale(glm::mat4(1.0f), glm::vec3(mFrameWidth / 2.0f, - mFrameHeight / 2.0f, 1.0f));
-            glm::mat4 translateBackToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, mFrameHeight / 2.0f, 0.0f));
+            glm::mat4 translateBackToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, mFrameHeight, 0.0f));
             mNDC2dToFrame = translateBackToOrigin * scaleAndInvert * translateToOrigin;
+            mCBuffer.clear();
+            mCBuffer.resize(mFrameHeight);
+            for (int i = 0; i < mFrameHeight; i ++) {
+                mCBuffer[i].resize(mFrameWidth);
+                for (int j = 0; j < mFrameWidth; j ++) {
+                    mCBuffer[i][j].resize(mSampleSide, std::vector<glm::vec4>(mSampleSide, glm::vec4(1.0f)));
+                }
+            }
+            mZBuffer.clear();
+            mZBuffer.resize(mFrameHeight);
+            for (int i = 0; i < mFrameHeight; i ++) {
+                mZBuffer[i].resize(mFrameWidth);
+                for (int j = 0; j < mFrameWidth; j ++) {
+                    mZBuffer[i][j].resize(mSampleSide, std::vector<float>(mSampleSide, 1.0f));
+                }
+            }
             return true;
         }
 
@@ -372,8 +442,20 @@ namespace COL781 {
         // Set object to be drawn
         void SoftwareRasterizer::setObject(const Object *object) {
             mPObject = object;
+            for (Vertex &vertex : mVertices) {
+                delete vertex.attributes;
+            }
             mVertexCount = (int) mPObject->attributes.size();
             mVertices.resize(mVertexCount);
+            for (Vertex &vertex : mVertices) {
+                vertex.attributes = new Attribs();
+            }
+            for (std::vector<Fragment> &v : mFragments) {
+                for (Fragment &fragment : v) {
+                    delete fragment.attributes;
+                }
+                v.clear();
+            }
             mTriangleCount = (int) mPObject->indices.size();
             mFragments.resize(mTriangleCount);
         }
