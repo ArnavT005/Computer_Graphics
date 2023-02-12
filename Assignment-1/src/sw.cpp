@@ -23,19 +23,19 @@ namespace COL781 {
 		template <> void Attribs::set(int, glm::vec3);
 		template <> void Attribs::set(int, glm::vec4);
 
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, float);
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, int);
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, glm::vec2);
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, glm::vec3);
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, glm::vec4);
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, glm::mat2);
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, glm::mat3);
-		template <> void Rasterizer::setUniform(ShaderProgram&, const std::string&, glm::mat4);
+		template void Rasterizer::setUniform<float>(ShaderProgram&, const std::string&, float);
+		template void Rasterizer::setUniform<int>(ShaderProgram&, const std::string&, int);
+		template void Rasterizer::setUniform<glm::vec2>(ShaderProgram&, const std::string&, glm::vec2);
+		template void Rasterizer::setUniform<glm::vec3>(ShaderProgram&, const std::string&, glm::vec3);
+		template void Rasterizer::setUniform<glm::vec4>(ShaderProgram&, const std::string&, glm::vec4);
+		template void Rasterizer::setUniform<glm::mat2>(ShaderProgram&, const std::string&, glm::mat2);
+		template void Rasterizer::setUniform<glm::mat3>(ShaderProgram&, const std::string&, glm::mat3);
+		template void Rasterizer::setUniform<glm::mat4>(ShaderProgram&, const std::string&, glm::mat4);
 
-		template <> void Rasterizer::setVertexAttribs(Object&, int, int, const float*);
-		template <> void Rasterizer::setVertexAttribs(Object&, int, int, const glm::vec2*);
-		template <> void Rasterizer::setVertexAttribs(Object&, int, int, const glm::vec3*);
-		template <> void Rasterizer::setVertexAttribs(Object&, int, int, const glm::vec4*);
+		template void Rasterizer::setVertexAttribs<float>(Object&, int, int, const float*);
+		template void Rasterizer::setVertexAttribs<glm::vec2>(Object&, int, int, const glm::vec2*);
+		template void Rasterizer::setVertexAttribs<glm::vec3>(Object&, int, int, const glm::vec3*);
+		template void Rasterizer::setVertexAttribs<glm::vec4>(Object&, int, int, const glm::vec4*);
 
 		// Built-in shaders
 
@@ -149,6 +149,17 @@ namespace COL781 {
 			values[index] = value;
 		}
 
+		int Attribs::count() {
+			return (int) values.size();
+		}
+
+		int Attribs::getDims(int attribIndex) {
+			if (attribIndex >= 0 && attribIndex < dims.size()) {
+				return dims[attribIndex];
+			}
+			return -1;
+		}
+
 		template <typename T> T Uniforms::get(const std::string &name) const {
 			return *(T*)values.at(name);
 		}
@@ -163,7 +174,7 @@ namespace COL781 {
 
 		// Implementation of Rasterizer class
 
-		bool Rasterizer::initialize(const std::string &title, int width, int height, int spp=1) {
+		bool Rasterizer::initialize(const std::string &title, int width, int height, int spp) {
 			window = nullptr;
 			quit = false;
 			bool widthFlag = softwareRasterizer.setFrameWidth(width);
