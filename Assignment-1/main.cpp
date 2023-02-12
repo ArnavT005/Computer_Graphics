@@ -7,7 +7,6 @@ void rasterizeTick(SoftwareRasterizer*);
 void rasterizeClock(SoftwareRasterizer*, Uint32);
 void rasterizeClockGraduations(SoftwareRasterizer*);
 void rasterizeNumbers(SoftwareRasterizer*);
-void fillMarkingTranslate();
 
 int main(int argc, char* args[]) {
     int frameWidth = 600, frameHeight = 600;
@@ -30,7 +29,6 @@ int main(int argc, char* args[]) {
             rasterizeClock(&softwareRasterizer, displayTime);
             rasterizeClockGraduations(&softwareRasterizer);
             rasterizeNumbers(&softwareRasterizer);
-            fillMarkingTranslate();
             softwareRasterizer.drawFramebuffer();
             displayTime ++;
         }
@@ -172,18 +170,6 @@ void rasterizeClockGraduations(SoftwareRasterizer *pSoftwareRasterizer) {
     }
 
 }
-glm::mat4 markingTranslates[12];
-
-
-void fillMarkingTranslate(){
-    float markingRadius = 0.70f;
-    glm::mat4 markingScale1 = glm::scale(glm::mat4(1.0f), glm::vec3(0.01, 0.15, 0.15));
-    float markingAngle1 = glm::radians(30.0f);
-    glm::vec3 markingCenterCoordinate1(markingRadius * glm::sin(markingAngle1), markingRadius * glm::cos(markingAngle1), 0.0f);
-    glm::mat4 markingTranslate1 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate1);
-    markingTranslates[0] = markingTranslate1;
-
-}
 
 
 void rasterizeNumbers(SoftwareRasterizer *pSoftwareRasterizer) {
@@ -202,106 +188,118 @@ glm::vec4 unitSquare[] = {
         glm::vec4(1.0, 1.0, 1.0, 1.0),
         glm::vec4(1.0, 1.0, 1.0, 1.0)
     };
+    #define MARK_2D_I(angle,i, scale) \
+    float markingAngle##i = glm::radians(angle); \
+    glm::vec3 markingCenterCoordinate##i (markingRadius * glm::sin(markingAngle##i) * scale, \
+                                                            markingRadius * glm::cos(markingAngle##i), \
+                                                            0.0f); \
+    glm::mat4 markingTranslate##i = glm::translate(glm::mat4(1.0f), markingCenterCoordinate##i); \
+    pSoftwareRasterizer->setCustom2d(markingTranslate##i * markingScale); \
+    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+
+
+
+    #define MARK_2D_V(angle,i,j,scale) \
+    float markingAngle##i = glm::radians(angle); \
+    glm::vec3 markingCenterCoordinate##i ((markingRadius * glm::sin(markingAngle##i) + j*0.0175) * scale, \
+                                                            markingRadius * glm::cos(markingAngle##i), \
+                                                            0.0f); \
+    glm::mat4 markingTranslate##i = glm::translate(glm::mat4(1.0f), markingCenterCoordinate##i); \
+    glm::mat4 markingRotate##i = glm::rotate(glm::mat4(1.0f), glm::radians(j*15.f), glm::vec3(0.0, 0.0, -1.0)); \
+    pSoftwareRasterizer->setCustom2d(markingTranslate##i * markingRotate##i* markingScale); \
+    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+
+
+    #define MARK_2D_X(angle,i,j,scale) \
+    float markingAngle##i = glm::radians(angle); \
+    glm::vec3 markingCenterCoordinate##i ((markingRadius * glm::sin(markingAngle##i)) * scale, \
+                                                            markingRadius * glm::cos(markingAngle##i), \
+                                                            0.0f); \
+    glm::mat4 markingTranslate##i = glm::translate(glm::mat4(1.0f), markingCenterCoordinate##i); \
+    glm::mat4 markingRotate##i = glm::rotate(glm::mat4(1.0f), glm::radians(j*15.f), glm::vec3(0.0, 0.0, -1.0)); \
+    pSoftwareRasterizer->setCustom2d(markingTranslate##i * markingRotate##i* markingScale); \
+    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+
+
+
+    
 
     float markingRadius = 0.70f;
+    glm::mat4 markingScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.01, 0.15, 0.15));
 
     // I
-    glm::mat4 markingScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.01, 0.15, 0.15));
-    pSoftwareRasterizer->setCustom2d(markingTranslates[0] * markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+    MARK_2D_I(30.0f, 1, 1);
 
     // II
-    
-    float markingAngle2 = glm::radians(60.0f);
-    glm::vec3 markingCenterCoordinate2((markingRadius * glm::sin(markingAngle2)*0.95) , markingRadius * glm::cos(markingAngle2), 0.0f);
-    glm::mat4 markingTranslate2 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate2);
-    pSoftwareRasterizer->setCustom2d(markingTranslate2 * markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
-
-    glm::vec3 markingCenterCoordinate3(markingRadius * glm::sin(markingAngle2) , markingRadius * glm::cos(markingAngle2), 0.0f);
-    glm::mat4 markingTranslate3 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate3);
-    pSoftwareRasterizer->setCustom2d(markingTranslate3 * markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+    MARK_2D_I(60.0f, 2, 0.95);
+    MARK_2D_I(60.0f, 3, 1.0);
 
 
+    // III
+    MARK_2D_I(90.0f, 4, 0.95);
+    MARK_2D_I(90.0f, 5, 1.0);
+    MARK_2D_I(90.0f, 6, 1.05);
 
-    //III
-    float markingAngle3 = glm::radians(90.0f);
-    glm::vec3 markingCenterCoordinate4((markingRadius * glm::sin(markingAngle3)*0.95) , markingRadius * glm::cos(markingAngle3), 0.0f);
-    glm::mat4 markingTranslate4 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate4);
-    pSoftwareRasterizer->setCustom2d(markingTranslate4 * markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
-
-    glm::vec3 markingCenterCoordinate5(markingRadius * glm::sin(markingAngle3) , markingRadius * glm::cos(markingAngle3), 0.0f);
-    glm::mat4 markingTranslate5 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate5);
-    pSoftwareRasterizer->setCustom2d(markingTranslate5 * markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
-
-
-    glm::vec3 markingCenterCoordinate6((markingRadius * glm::sin(markingAngle3)*1.05) , markingRadius * glm::cos(markingAngle3), 0.0f);
-    glm::mat4 markingTranslate6 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate6);
-    pSoftwareRasterizer->setCustom2d(markingTranslate6 * markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
-
-
-    glm::mat4 markingRotate1 = glm::rotate(glm::mat4(1.0f), glm::radians(-15.f), glm::vec3(0.0, 0.0, -1.0));
-    glm::mat4 markingRotate2 = glm::rotate(glm::mat4(1.0f), glm::radians(15.f), glm::vec3(0.0, 0.0, -1.0));
-
-    
     // IV
-    float markingAngle4 = glm::radians(120.0f);
+    MARK_2D_I(120.0f, 7, 0.95);
+    MARK_2D_V(120.f, 8, 1, 1.05);
+    MARK_2D_V(120.f, 9, -1, 1.05);
+    // V
+    MARK_2D_V(150.f, 10, 1, 1.0);
+    MARK_2D_V(150.f, 11, -1, 1.0);
 
-    glm::vec3 markingCenterCoordinate7((markingRadius * glm::sin(markingAngle4)*0.90) , markingRadius * glm::cos(markingAngle4), 0.0f);
-    glm::mat4 markingTranslate7 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate7);
-    pSoftwareRasterizer->setCustom2d(markingTranslate7 * markingScale);
+    // VI
+    MARK_2D_V(180.f, 12, 1, 0.95);
+    MARK_2D_V(180.f, 13, -1, 0.95);
+    float markingAngle14 = glm::radians(180.0f);
+    glm::vec3 markingCenterCoordinate14((markingRadius * glm::sin(markingAngle14)*0.95) + 0.05 , markingRadius * glm::cos(markingAngle14), 0.0f);
+    glm::mat4 markingTranslate14 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate14);
+    pSoftwareRasterizer->setCustom2d(markingTranslate14 * markingScale);
     pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
 
-
-    glm::vec3 markingCenterCoordinate8((markingRadius * glm::sin(markingAngle4))*1.05 , markingRadius * glm::cos(markingAngle4), 0.0f);
-    glm::mat4 markingTranslate8 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate8);
-    pSoftwareRasterizer->setCustom2d(markingTranslate8 * markingRotate2* markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
-
-    glm::vec3 markingCenterCoordinate9((markingRadius * glm::sin(markingAngle4))*1.05, markingRadius * glm::cos(markingAngle4), 0.0f);
-    glm::mat4 markingTranslate9 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate9);
-    pSoftwareRasterizer->setCustom2d(markingTranslate9 * markingRotate1* markingScale);
-    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+    // VII
+    MARK_2D_V(210.f, 15, 1, 1.05);
+    MARK_2D_V(210.f, 16, -1, 1.05);
+    MARK_2D_I(210.0f,17, 0.85);
+    MARK_2D_I(210.0f,18, 0.80);
 
 
-
+    // VIII
+    MARK_2D_V(240.f, 19, 1, 1.05);
+    MARK_2D_V(240.f, 20, -1, 1.05);
+    MARK_2D_I(240.0f,21, 0.95);
+    MARK_2D_I(240.0f,22, 0.90);
+    MARK_2D_I(240.0f,23, 0.85);
 
     // IX
-    float markingAngle9 = glm::radians(270.f);
+    MARK_2D_I(270.0f,24, 0.95);
+    MARK_2D_X(270.f, 25, 1, 0.90);
+    MARK_2D_X(270.f, 26, -1, 0.90);
 
-    // glm::vec3 markingCenterCoordinate9((markingRadius * glm::sin(markingAngle9)*0.95) , markingRadius * glm::cos(markingAngle9), 0.0f);
-    // glm::mat4 markingTranslate9 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate9);
-    // pSoftwareRasterizer->setCustom2d(markingTranslate9 * markingScale);
-    // pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
-
-
-    // glm::vec3 markingCenterCoordinate7((markingRadius * glm::sin(markingAngle9)*0.90) , markingRadius * glm::cos(markingAngle9), 0.0f);
-    // glm::mat4 markingTranslate7 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate7);
-    // pSoftwareRasterizer->setCustom2d(markingTranslate7 * markingRotate1* markingScale);
-    // pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
-
-    // pSoftwareRasterizer->setCustom2d(markingTranslate7 * markingRotate2* markingScale);
-    // pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+    // X
+    MARK_2D_X(300.f, 27, 1, 1.0);
+    MARK_2D_X(300.f, 28, -1, 1.0);
 
 
-    // X 
-    // glm::vec3 markingCenterCoordinate7((markingRadius * glm::sin(markingAngle9)*0.90) , markingRadius * glm::cos(markingAngle9), 0.0f);
-    // glm::mat4 markingTranslate7 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate7);
-    // pSoftwareRasterizer->setCustom2d(markingTranslate7 * markingRotate1* markingScale);
-    // pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+    // XI
+    MARK_2D_X(330.f, 29, 1, 1.0);
+    MARK_2D_X(330.f, 30, -1, 1.0);
+    MARK_2D_I(330.0f,31, 0.90);
 
-    // pSoftwareRasterizer->setCustom2d(markingTranslate7 * markingRotate2* markingScale);
-    // pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
+    // XII
+    MARK_2D_X(360.f, 32, 1, 1.0);
+    MARK_2D_X(360.f, 33, -1, 1.0);
 
+    float markingAngle34 = glm::radians(360.0f);
+    glm::vec3 markingCenterCoordinate34((markingRadius * glm::sin(markingAngle34)*0.95) + 0.05 , markingRadius * glm::cos(markingAngle34), 0.0f);
+    glm::mat4 markingTranslate34 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate34);
+    pSoftwareRasterizer->setCustom2d(markingTranslate34 * markingScale);
+    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
 
-    
-
-
-
+    glm::vec3 markingCenterCoordinate35((markingRadius * glm::sin(markingAngle34)*0.95) + 0.08 , markingRadius * glm::cos(markingAngle34), 0.0f);
+    glm::mat4 markingTranslate35 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate35);
+    pSoftwareRasterizer->setCustom2d(markingTranslate35 * markingScale);
+    pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
 
 
 
