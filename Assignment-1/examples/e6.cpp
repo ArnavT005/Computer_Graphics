@@ -1,71 +1,42 @@
 #include "../src/a1.hpp"
 
 namespace R = COL781::Software;
+// namespace R = COL781::Hardware;
 using namespace glm;
 
 int main() {
-    R::Rasterizer r;
-    if (!r.initialize("2x2 Rubik's Cube", 640, 480))
+	R::Rasterizer r;
+    if (!r.initialize("Example 2", 640, 480))
         return EXIT_FAILURE;
-
     R::ShaderProgram program = r.createShaderProgram(
-        r.vsIdentity(),
-        r.fsConstant()
-    );
-
+        r.vsColor(),
+        r.fsIdentity()
+    );  
     vec4 vertices[] = {
-        vec4(-0.8, -0.8,  0.8, 1.0), // 0
-        vec4(-0.8,  0.8,  0.8, 1.0), // 1
-        vec4( 0.8,  0.8,  0.8, 1.0), // 2
-        vec4( 0.8, -0.8,  0.8, 1.0), // 3
-        vec4(-0.8, -0.8, -0.8, 1.0), // 4
-        vec4(-0.8,  0.8, -0.8, 1.0), // 5
-        vec4( 0.8,  0.8, -0.8, 1.0), // 6
-        vec4( 0.8, -0.8, -0.8, 1.0)  // 7
+		vec4( 0.0, -0.8, 0.0, 1.0),
+        vec4( 0.8,  0.0, 0.0, 1.0),
+        vec4( 0.0,  0.8, 0.0, 1.0),
+        vec4(-0.8,  0.0, 0.0, 1.0)
     };
-
-    ivec3 triangles[] = {
-        // Front
-        ivec3(0, 1, 2),
-        ivec3(0, 2, 3),
-        // Back
-        ivec3(4, 7, 6),
-        ivec3(4, 6, 5),
-        // Left
-        ivec3(0, 4, 5),
-        ivec3(0, 5, 1),
-        // Right
-        ivec3(2, 6, 7),
-        ivec3(2, 7, 3),
-        // Top
-        ivec3(1, 5, 6),
-        ivec3(1, 6, 2),
-        // Bottom
-        ivec3(3, 7, 4),
-        ivec3(3, 4, 0)
+    vec4 colors[] = {
+        vec4(0.5, 0.5, 0.5, 1.0),
+        vec4(0.5, 0.5, 0.5, 1.0),
+        vec4(0.5, 0.5, 0.5, 1.0),
+        vec4(0.5, 0.5, 0.5, 1.0)
     };
-
-    R::Object cube = r.createObject();
-    r.setVertexAttribs(cube, 0, 8, vertices);
-    r.setTriangleIndices(cube, 12, triangles);
-
+	ivec3 triangles[] = {
+		ivec3(0, 1, 2),
+		ivec3(0, 2, 3)
+	};
+	R::Object shape = r.createObject();
+	r.setVertexAttribs(shape, 0, 4, vertices);
+	r.setVertexAttribs(shape, 1, 4, colors);
+	r.setTriangleIndices(shape, 2, triangles);
     while (!r.shouldQuit()) {
         r.clear(vec4(1.0, 1.0, 1.0, 1.0));
         r.useShaderProgram(program);
-
-        // Draw each face with a different color
-        r.setUniform<vec4>(program, "color", vec4(1.0, 0.0, 0.0, 1.0));
-        r.drawObject(cube);
-        r.setUniform<vec4>(program, "color", vec4(0.0, 1.0, 0.0, 1.0));
-        r.drawObject(cube);
-        r.setUniform<vec4>(program, "color", vec4(0.0, 0.0, 1.0, 1.0));
-        r.drawObject(cube);
-        r.setUniform<vec4>(program, "color", vec4(1.0, 1.0, 0.0, 1.0));
-        r.drawObject(cube);
-        r.setUniform<vec4>(program, "color", vec4(0.0, 1.0, 1.0, 1.0));
-        r.drawObject(cube);
-        r.setUniform<vec4>(program, "color", vec4(1.0, 0.0, 1.0, 1.0));
-        r.drawObject(cube);
+		r.drawObject(shape);
+        r.show();
     }
     r.deleteShaderProgram(program);
     return EXIT_SUCCESS;
