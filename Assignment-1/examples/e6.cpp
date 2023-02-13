@@ -32,12 +32,20 @@ int main() {
 	r.setVertexAttribs(shape, 0, 4, vertices);
 	r.setVertexAttribs(shape, 1, 4, colors);
 	r.setTriangleIndices(shape, 2, triangles);
+    r.enableDepthTest();
+    mat4 view = translate(mat4(1.0f), vec3(0.0f, 0.0f, -10.0f)); 
+    mat4 projection = perspective(radians(60.0f), (float)480/(float)640, 0.1f, 100.0f);
+    mat4 vp = projection * view;
     while (!r.shouldQuit()) {
         r.clear(vec4(1.0, 1.0, 1.0, 1.0));
         r.useShaderProgram(program);
+        r.setUniform(program, "transform", vp);
 		r.drawObject(shape);
         r.show();
     }
+
+
+
     r.deleteShaderProgram(program);
     return EXIT_SUCCESS;
 }

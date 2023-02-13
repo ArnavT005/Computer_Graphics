@@ -79,9 +79,9 @@ void rasterizeTick(SoftwareRasterizer *pSoftwareRasterizer) {
 void rasterizeClock(SoftwareRasterizer *pSoftwareRasterizer, Uint32 displayTime) {
     glm::vec4 unitSquare[] = {
         glm::vec4(-0.5, -0.5, 0.0, 1.0),
-        glm::vec4(0.5, -0.5, 0.0, 1.0),
+        glm::vec4(0.08, -0.08, 0.0, 1.0),
         glm::vec4(0.5, 0.5, 0.0, 1.0),
-        glm::vec4(-0.5, 0.5, 0.0, 1.0)
+        glm::vec4(-0.08, 0.08, 0.0, 1.0)
     };
     glm::ivec3 indices[] = {
         glm::ivec3(0, 1, 2),
@@ -154,8 +154,8 @@ void rasterizeClockGraduations(SoftwareRasterizer *pSoftwareRasterizer) {
         glm::vec4(1.0, 1.0, 1.0, 1.0)
     };
     float markingRadius = 0.90f;
-    glm::mat4 iScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.25f, 1.0f));
-    glm::mat4 iScaleLarge = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.5f, 1.0f));
+    glm::mat4 iScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f, 0.125f, 1.0f));
+    glm::mat4 iScaleLarge = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 1.0f));
     for (int i = 0; i < 60; i ++) {
         float markingAngle = glm::radians(i * 6.0f);
         glm::mat4 markingRotate = glm::rotate(glm::mat4(1.0f), markingAngle, glm::vec3(0.0, 0.0, -1.0));
@@ -194,29 +194,29 @@ glm::vec4 unitSquare[] = {
     glm::mat4 markingScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.01, 0.15, 0.15));
 
     // I
-    MARK_2D_I(30.0f, 1, 1);
+    MARK_2D_I(30.0f, 1, 1.05);
 
     // II
-    MARK_2D_I(60.0f, 2, 0.95);
-    MARK_2D_I(60.0f, 3, 1.0);
+    MARK_2D_I(60.0f, 2, 1);
+    MARK_2D_I(60.0f, 3, 1.05);
 
 
     // III
-    MARK_2D_I(90.0f, 4, 0.95);
-    MARK_2D_I(90.0f, 5, 1.0);
-    MARK_2D_I(90.0f, 6, 1.05);
+    MARK_2D_I(90.0f, 4, 1.0);
+    MARK_2D_I(90.0f, 5, 1.05);
+    MARK_2D_I(90.0f, 6, 1.10);
 
     // IV
-    MARK_2D_I(120.0f, 7, 0.95);
-    MARK_2D_V(120.f, 8, 1, 1.05);
-    MARK_2D_V(120.f, 9, -1, 1.05);
+    MARK_2D_I(120.0f, 7, 1.0);
+    MARK_2D_V(120.f, 8, 1, 1.1);
+    MARK_2D_V(120.f, 9, -1, 1.1);
     // V
-    MARK_2D_V(150.f, 10, 1, 1.0);
-    MARK_2D_V(150.f, 11, -1, 1.0);
+    MARK_2D_V(150.f, 10, 1, 1.05);
+    MARK_2D_V(150.f, 11, -1, 1.05);
 
     // VI
-    MARK_2D_V(180.f, 12, 1, 0.95);
-    MARK_2D_V(180.f, 13, -1, 0.95);
+    MARK_2D_V(180.f, 12, 1, 0.90);
+    MARK_2D_V(180.f, 13, -1, 0.90);
     float markingAngle14 = glm::radians(180.0f);
     glm::vec3 markingCenterCoordinate14((markingRadius * glm::sin(markingAngle14)*0.95) + 0.05 , markingRadius * glm::cos(markingAngle14), 0.0f);
     glm::mat4 markingTranslate14 = glm::translate(glm::mat4(1.0f), markingCenterCoordinate14);
@@ -238,13 +238,13 @@ glm::vec4 unitSquare[] = {
     MARK_2D_I(240.0f,23, 0.85);
 
     // IX
-    MARK_2D_I(270.0f,24, 0.95);
-    MARK_2D_X(270.f, 25, 1, 0.90);
-    MARK_2D_X(270.f, 26, -1, 0.90);
+    MARK_2D_I(270.0f,24, 1.0);
+    MARK_2D_X(270.f, 25, 1, 0.95);
+    MARK_2D_X(270.f, 26, -1, 0.95);
 
     // X
-    MARK_2D_X(300.f, 27, 1, 1.0);
-    MARK_2D_X(300.f, 28, -1, 1.0);
+    MARK_2D_X(300.f, 27, 1, 1.05);
+    MARK_2D_X(300.f, 28, -1, 1.05);
 
 
     // XI
