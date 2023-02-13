@@ -11,7 +11,7 @@ int main() {
     R::ShaderProgram program = r.createShaderProgram(
         r.vsIdentity(),
         r.fsConstant()
-    );
+    );  
     vec4 vertices[] = {
 		vec4(-0.8,  0.0, 0.0, 1.0),
         vec4(-0.4, -0.8, 0.0, 1.0),
