@@ -226,9 +226,16 @@ namespace COL781 {
 
         // Rasterize all triangles
         void SoftwareRasterizer::rasterizeTriangles() {
+            std::vector<std::thread> threads(mTriangleCount);
+            std::vector<std::vector<Vertex>> vertices(mTriangleCount, std::vector<Vertex>(3));
             for (int i = 0; i < mTriangleCount; i ++) {
-                Vertex vertices[3] = {mVertices[mPObject->indices[i][0]], mVertices[mPObject->indices[i][1]], mVertices[mPObject->indices[i][2]]};
-                rasterizeTriangle(i, vertices);
+                vertices[i][0] = mVertices[mPObject->indices[i][0]];
+                vertices[i][1] = mVertices[mPObject->indices[i][1]];
+                vertices[i][2] = mVertices[mPObject->indices[i][2]];
+                threads[i] = std::thread(&SoftwareRasterizer::rasterizeTriangle, this, i, vertices[i].data());
+            }
+            for (int i = 0; i < mTriangleCount; i ++) {
+                threads[i].join();
             }
         }
 
@@ -291,7 +298,6 @@ namespace COL781 {
                                     }
                                 }
                                 fragment.depth = (1 + fragment.depth) / 2;
-                                
                                 mFragments[index].push_back(fragment);
                             }
                         }
