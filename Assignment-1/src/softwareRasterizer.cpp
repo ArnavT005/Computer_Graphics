@@ -252,8 +252,8 @@ namespace COL781 {
             int minY = mFrameHeight, maxY = -1;
             boundingBox2D(screenVertices, 3, &minX, &maxX, &minY, &maxY);
             float sampleSpace = 1.0f / (mSampleSide + 1);
-            for (int i = minY; i < maxY; i ++) {
-                for (int j = minX; j < maxX; j ++) {
+            for (int i = std::max(0, minY); i < std::min(maxY, mFrameHeight); i ++) {
+                for (int j = std::max(0, minX); j < std::min(maxX, mFrameWidth); j ++) {
                     for (int n_y = 1; n_y <= mSampleSide; n_y ++) {
                         for (int n_x = 1; n_x <= mSampleSide; n_x ++) {
                             float x = j + n_x * sampleSpace;
