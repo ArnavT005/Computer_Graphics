@@ -153,7 +153,7 @@ namespace COL781 {
                 for (int j = 0; j < mFrameWidth; j ++) {
                     for (int x = 0; x < mSampleSide; x ++) {
                         for (int y = 0; y < mSampleSide; y ++) {
-                            mCBuffer[i][j][x][y] = glm::vec4(1.0f);
+                            mCBuffer[i][j][x][y] = normalizedColor;
                             if (mDepthTesting) {
                                 mZBuffer[i][j][x][y] = 1.0f;
                             }
