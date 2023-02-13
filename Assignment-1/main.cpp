@@ -105,8 +105,8 @@ void rasterizeClock(SoftwareRasterizer *pSoftwareRasterizer, Uint32 displayTime)
     pSoftwareRasterizer->setCustom2d(secondHandTranslate * secondHandRotate * secondHandScale);
     pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, secondHandColor, 2);
     glm::vec4 minuteHandColor[] = {
-        glm::vec4(1.0, 1.0, 0.0, 1.0),
-        glm::vec4(1.0, 1.0, 0.0, 1.0)
+        glm::vec4(1.0, 1.0, 1.0, 1.0),
+        glm::vec4(1.0, 1.0, 1.0, 1.0)
     };
     float minutePassed = (displayTime / 60.0f) - 60 * (displayTime / 3600);
     float minuteHandRadius = 0.30f;
@@ -118,8 +118,8 @@ void rasterizeClock(SoftwareRasterizer *pSoftwareRasterizer, Uint32 displayTime)
     pSoftwareRasterizer->setCustom2d(minuteHandTranslate * minuteHandRotate * minuteHandScale);
     pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, minuteHandColor, 2);
     glm::vec4 hourHandColor[] = {
-        glm::vec4(1.0, 0.0, 1.0, 1.0),
-        glm::vec4(1.0, 0.0, 1.0, 1.0)
+        glm::vec4(1.0, 1.0, 1.0, 1.0),
+        glm::vec4(1.0, 1.0, 1.0, 1.0)
     };
     float hourPassed = displayTime / 3600.0f - 12 * (displayTime / (12 * 3600));
     float hourHandRadius = 0.15f;
@@ -186,8 +186,8 @@ glm::vec4 unitSquare[] = {
         glm::ivec3(2, 3, 0)
     };
     glm::vec4 markingColor[] = {
-        glm::vec4(1.0, 1.0, 1.0, 1.0),
-        glm::vec4(1.0, 1.0, 1.0, 1.0)
+        glm::vec4(0.5, 0.5, 0.5, 1.0),
+        glm::vec4(0.5, 0.5, 0.5, 1.0)
     };
 
     float markingRadius = 0.70f;
