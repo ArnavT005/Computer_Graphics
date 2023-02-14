@@ -1,5 +1,7 @@
 #include "../src/a1.hpp"
 #include "romans.hpp"
+#include <iostream>
+using namespace std;
 
 namespace R = COL781::Software;
 // namespace R = COL781::Hardware;
@@ -87,11 +89,20 @@ int main() {
     float markingRadiusFork = 0.90f;
     float markingRadiusNumber = 0.7f;
 
+
     while (!r.shouldQuit()) {
         Uint32 displayTime = 0;
         auto now = std::chrono::system_clock::now();
-        auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-        displayTime = timestamp % 60000;
+        // add 5 hours and 30 minutes to the current time
+        now += std::chrono::hours(5);
+        now += std::chrono::minutes(30);
+        auto hours = std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count();
+        auto minutes = std::chrono::duration_cast<std::chrono::minutes>(now.time_since_epoch()).count();
+        auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+        hours = hours % 12;
+        minutes = minutes % 60;
+        seconds = seconds % 60;
+        cout<<hours<<" "<<minutes<<" "<<seconds<<endl;
         r.clear(vec4(1.0, 1.0, 1.0, 1.0));
         r.useShaderProgram(program);
         for (int i = 0; i < 60; i ++) {
@@ -182,7 +193,7 @@ int main() {
         r.drawObject(fork);
 
 
-        Uint32 secondPassed = displayTime % 60;
+        Uint32 secondPassed = seconds;
         float secondHandRadius = 0.40f;
         mat4 secondHandScale = scale(mat4(1.0f), vec3(0.025f, 0.8f, 1.0f));
         float secondHandAngle = radians(secondPassed * 6.0f);
@@ -192,7 +203,7 @@ int main() {
         r.setUniform(program, "transform", secondHandTranslate * secondHandRotate * secondHandScale);
         r.drawObject(secondHand);
 
-        float minutePassed = (displayTime / 60.0f) - 60 * (displayTime / 3600);
+        float minutePassed = minutes;
         float minuteHandRadius = 0.30f;
         mat4 minuteHandScale = scale(mat4(1.0f), vec3(0.05f, 0.6f, 1.0f));
         float minuteHandAngle = radians(minutePassed * 6.0f);
@@ -202,7 +213,7 @@ int main() {
         r.setUniform(program, "transform", minuteHandTranslate * minuteHandRotate * minuteHandScale);
         r.drawObject(minuteHand);
 
-        float hourPassed = displayTime / 3600.0f - 12 * (displayTime / (12 * 3600));
+        float hourPassed = hours;
         float hourHandRadius = 0.15f;
         mat4 hourHandScale = scale(mat4(1.0f), vec3(0.075f, 0.3f, 1.0f));
         float hourHandAngle = radians(hourPassed * 30.0f);
