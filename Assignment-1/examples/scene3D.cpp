@@ -9,7 +9,7 @@ using namespace glm;
 int main() {
 	R::Rasterizer r;
 	int width = 640, height = 480;
-    if (!r.initialize("Cube", width, height))
+    if (!r.initialize("Cube Land", width, height))
         return EXIT_FAILURE;
 
     R::ShaderProgram program = r.createShaderProgram(
