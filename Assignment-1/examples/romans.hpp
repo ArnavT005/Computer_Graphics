@@ -9,7 +9,8 @@ extern glm::mat4 markingScale;
 extern glm::vec3 markingColor;
 extern unsigned int indices[6];
 extern glm::vec2 unitSquare[4];
-extern class SoftwareRasterizer *pSoftwareRasterizer;
+// extern class SoftwareRasterizer *pSoftwareRasterizer;
+extern class R::Rasterizer r;
 
 void MARK_2D_I(float angle, int i, float scale);
 void MARK_2D_V(float angle, int i, int j, float scale);
@@ -22,6 +23,7 @@ void MARK_2D_X(float angle, int i, int j, float scale);
                                                             markingRadius * glm::cos(markingAngle##i), \
                                                             0.0f); \
     glm::mat4 markingTranslate##i = glm::translate(glm::mat4(1.0f), markingCenterCoordinate##i); \
+    
     pSoftwareRasterizer->setCustom2d(markingTranslate##i * markingScale); \
     pSoftwareRasterizer->rasterizeArbitraryShape2D(unitSquare, indices, markingColor, 2);
 

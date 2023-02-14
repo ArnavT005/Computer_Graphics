@@ -31,3 +31,6 @@ target_link_libraries(e6 a1)
 
 add_executable(e7 examples/e7.cpp)
 target_link_libraries(e7 a1)
+
+add_executable(clock examples/clock.cpp)
+target_link_libraries(clock a1)
