@@ -198,9 +198,7 @@ int main() {
         mat4 secondHandRotate = rotate(mat4(1.0f), secondHandAngle, vec3(0.0, 0.0, -1.0f));
         vec3 secondHandCenterCoordinate(secondHandRadius * sin(secondHandAngle), secondHandRadius * cos(secondHandAngle), 0.0f);
         mat4 secondHandTranslate = translate(mat4(1.0f), secondHandCenterCoordinate);
-        mat4 secondHandRotate1 = rotate(mat4(1.0f), radians(45.0f), vec3(0.0, 0.0, -1.0));
-        mat4 secondHandScale1 = scale(mat4(1.0f), vec3(0.4f, 1.0f, 1.0f));
-        r.setUniform(program, "transform", secondHandTranslate * secondHandRotate * secondHandScale * secondHandRotate1 * secondHandScale1);
+        r.setUniform(program, "transform", secondHandTranslate * secondHandRotate * secondHandScale);
         r.drawObject(secondHand);
 
         float minutePassed = minutes*1.0f + (float)seconds/60.0f;
@@ -210,9 +208,7 @@ int main() {
         mat4 minuteHandRotate = rotate(mat4(1.0f), minuteHandAngle, vec3(0.0, 0.0, -1.0f));
         vec3 minuteHandCenterCoordinate(minuteHandRadius * sin(minuteHandAngle), minuteHandRadius * cos(minuteHandAngle), 0.0f);
         mat4 minuteHandTranslate = translate(mat4(1.0f), minuteHandCenterCoordinate);
-        mat4 minuteHandRotate1 = rotate(mat4(1.0f), radians(45.0f), vec3(0.0, 0.0, -1.0));
-        mat4 minuteHandScale1 = scale(mat4(1.0f), vec3(0.25f, 1.0f, 1.0f));
-        r.setUniform(program, "transform", minuteHandTranslate * minuteHandRotate * minuteHandScale * minuteHandRotate1 * minuteHandScale1);
+        r.setUniform(program, "transform", minuteHandTranslate * minuteHandRotate * minuteHandScale);
         r.drawObject(minuteHand);
 
         float hourPassed = hours*1.0f + (float)minutes/60.0f;
@@ -222,9 +218,7 @@ int main() {
         mat4 hourHandRotate = rotate(mat4(1.0f), hourHandAngle, vec3(0.0, 0.0, -1.0f));
         vec3 hourHandCenterCoordinate(hourHandRadius * sin(hourHandAngle), hourHandRadius * cos(hourHandAngle), 0.0f);
         mat4 hourHandTranslate = translate(mat4(1.0f), hourHandCenterCoordinate);
-        mat4 hourHandRotate1 = rotate(mat4(1.0f), radians(45.0f), vec3(0.0, 0.0, -1.0));
-        mat4 hourHandScale1 = scale(mat4(1.0f), vec3(0.15f, 1.0f, 1.0f));
-        r.setUniform(program, "transform",  hourHandTranslate * hourHandRotate * hourHandScale * hourHandRotate1 * hourHandScale1);
+        r.setUniform(program, "transform",  hourHandTranslate * hourHandRotate * hourHandScale);
         r.drawObject(hourHand);
 
 
