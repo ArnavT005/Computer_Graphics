@@ -3,13 +3,13 @@
 #include <iostream>
 using namespace std;
 
-namespace R = COL781::Software;
-// namespace R = COL781::Hardware;
+// namespace R = COL781::Software;
+namespace R = COL781::Hardware;
 using namespace glm;
 
 int main() {
 	R::Rasterizer r;
-    if (!r.initialize("Example 2", 640, 480))
+    if (!r.initialize("Clock", 640, 480))
         return EXIT_FAILURE;
     R::ShaderProgram program = r.createShaderProgram(
         r.vsColorTransform(),
@@ -50,6 +50,8 @@ int main() {
         vec4(0.0, 0.0, 1.0, 1.0),
         vec4(0.0, 0.0, 1.0, 1.0)
     };
+
+
 	ivec3 forkTriangles[] = {
 		ivec3(0, 1, 2),
 		ivec3(0, 2, 3)
@@ -76,10 +78,6 @@ int main() {
     r.setTriangleIndices(hourHand, 2, forkTriangles);
 
 
-    R::Object numbers = r.createObject();
-    r.setVertexAttribs(numbers, 0, 4, unitSquare);
-	r.setVertexAttribs(numbers, 1, 4, forkColors);
-	r.setTriangleIndices(numbers, 2, forkTriangles);
 
 
 
@@ -102,7 +100,6 @@ int main() {
         hours = hours % 12;
         minutes = minutes % 60;
         seconds = seconds % 60;
-        cout<<hours<<" "<<minutes<<" "<<seconds<<endl;
         r.clear(vec4(1.0, 1.0, 1.0, 1.0));
         r.useShaderProgram(program);
         for (int i = 0; i < 60; i ++) {
@@ -203,7 +200,7 @@ int main() {
         r.setUniform(program, "transform", secondHandTranslate * secondHandRotate * secondHandScale);
         r.drawObject(secondHand);
 
-        float minutePassed = minutes;
+        float minutePassed = minutes*1.0f + (float)seconds/60.0f;
         float minuteHandRadius = 0.30f;
         mat4 minuteHandScale = scale(mat4(1.0f), vec3(0.05f, 0.6f, 1.0f));
         float minuteHandAngle = radians(minutePassed * 6.0f);
@@ -213,7 +210,7 @@ int main() {
         r.setUniform(program, "transform", minuteHandTranslate * minuteHandRotate * minuteHandScale);
         r.drawObject(minuteHand);
 
-        float hourPassed = hours;
+        float hourPassed = hours*1.0f + (float)minutes/60.0f;
         float hourHandRadius = 0.15f;
         mat4 hourHandScale = scale(mat4(1.0f), vec3(0.075f, 0.3f, 1.0f));
         float hourHandAngle = radians(hourPassed * 30.0f);
@@ -222,9 +219,6 @@ int main() {
         mat4 hourHandTranslate = translate(mat4(1.0f), hourHandCenterCoordinate);
         r.setUniform(program, "transform", hourHandTranslate * hourHandRotate * hourHandScale);
         r.drawObject(hourHand);
-
-
-
 
 
 
