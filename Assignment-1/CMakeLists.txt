@@ -26,11 +26,8 @@ target_link_libraries(e4 a1)
 add_executable(e5 examples/e5.cpp)
 target_link_libraries(e5 a1)
 
-add_executable(e6 examples/e6.cpp)
-target_link_libraries(e6 a1)
-
-add_executable(e7 examples/e7.cpp)
-target_link_libraries(e7 a1)
+add_executable(scene3D examples/scene3D.cpp)
+target_link_libraries(scene3D a1)
 
 add_executable(clock examples/clock.cpp)
 target_link_libraries(clock a1)
