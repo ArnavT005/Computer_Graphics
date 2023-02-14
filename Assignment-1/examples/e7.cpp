@@ -17,6 +17,11 @@ int main() {
         r.fsIdentity()
     );
 
+    R::ShaderProgram program_color = r.createShaderProgram(
+        r.vsTransform(),
+        r.fsConstant()
+    );
+
     vec4 vertices_ground[] = {
         vec4(-1.0, 0.0, 1.0, 1.0),
         vec4(1.0, 0.0, 1.0, 1.0),
@@ -60,10 +65,10 @@ int main() {
 	r.setTriangleIndices(ground, 12, triangles_ground);
 
     vec4 vertices_tracks[] = {
-        vec4(-1.0, 0.2, 1.0, 1.0),
-        vec4(1.0, 0.2, 1.0, 1.0),
-        vec4(1.0, 0.2, -1.0, 1.0),
-        vec4(-1.0, 0.2, -1.0, 1.0)
+        vec4(-1.0, 0.5, 1.0, 1.0),
+        vec4(1.0, 0.5, 1.0, 1.0),
+        vec4(1.0, 0.5, -1.0, 1.0),
+        vec4(-1.0, 0.5, -1.0, 1.0)
     };
 
     vec4 colors_tracks[] = {
@@ -96,11 +101,7 @@ int main() {
         vec4(0.49, 0.99, 0.0, 1.0),
         vec4(0.49, 0.99, 0.0, 1.0),
         vec4(0.49, 0.99, 0.0, 1.0),
-        // vec4(0, 0, 0, 1),
-        // vec4(0, 0, 0, 1),
-        // vec4(0, 0, 0, 1),
-        // vec4(0, 0, 0, 1),
-        vec4(1.0, 0.0, 0.84, 1.0)
+        vec4(0.0, 0.40, 0.0, 1.0)
     };
 
     ivec3 triangles_square[] = {
@@ -142,6 +143,60 @@ int main() {
 	r.setVertexAttribs(tree, 0, 5, vertices_tree);
 	r.setVertexAttribs(tree, 1, 5, colors_tree);
 	r.setTriangleIndices(tree, 4, triangles_tree);
+
+    vec4 vertices_sky[] = {
+        vec4(-1, 0, 0, 1),
+        vec4(1, 0, 0, 1),
+        vec4(1, 1, 0, 1),
+        vec4(-1, 1, 0, 1)
+    };
+
+    vec4 colors_sky[] = {
+        vec4(0.53, 0.81, 0.92, 1),
+        vec4(0.53, 0.81, 0.92, 1),
+        vec4(0.53, 0.81, 0.92, 1),
+        vec4(0.53, 0.81, 0.92, 1)
+    };
+
+    ivec3 triangles_sky[] = {
+        ivec3(0, 1, 2),
+        ivec3(0, 2, 3)
+    };
+
+    R::Object sky = r.createObject();
+	r.setVertexAttribs(sky, 0, 4, vertices_sky);
+	r.setVertexAttribs(sky, 1, 4, colors_sky);
+	r.setTriangleIndices(sky, 2, triangles_sky);
+
+    vec4 vertices_train[] = {
+        vec4(-1.0, 1.0, 1.0, 1.0),
+        vec4(1.0, 1.0, 1.0, 1.0),
+        vec4(1.0, 1.0, -1.0, 1.0),
+        vec4(-1.0, 1.0, -1.0, 1.0),
+        vec4(-1.0, 2.0, 1.0, 1.0),
+        vec4(1.0, 2.0, 1.0, 1.0),
+        vec4(1.0, 2.0, -1.0, 1.0),
+        vec4(-1.0, 2.0, -1.0, 1.0)
+    };
+
+    ivec3 triangles_train[] = {
+        ivec3(0, 1, 2),
+        ivec3(0, 2, 3),
+        ivec3(0, 1, 4),
+        ivec3(1, 4, 5),
+        ivec3(1, 2, 5),
+        ivec3(2, 5, 6),
+        ivec3(2, 3, 6),
+        ivec3(3, 6, 7),
+        ivec3(3, 0, 7),
+        ivec3(0, 7, 4),
+        ivec3(4, 5, 6),
+        ivec3(4, 6, 7)
+    };
+
+    R::Object train = r.createObject();
+	r.setVertexAttribs(train, 0, 8, vertices_train);
+	r.setTriangleIndices(train, 12, triangles_train);
 
     vec4 vertices[] = {
         vec4(-0.8, -0.8, 0.8, 1.0),
@@ -367,8 +422,8 @@ int main() {
 	r.setTriangleIndices(cube8, 24, triangles);
 
     r.enableDepthTest();
-	mat4 view = translate(mat4(1.0f), vec3(0.0f, -5.0f, -20.0f)) * rotate(mat4(1.0f), radians(40.0f), vec3(1, 0, 0)); 
-    mat4 projection = perspective(radians(60.0f), (float)width/(float)height, 0.1f, 100.0f);
+	mat4 view = translate(mat4(1.0f), vec3(0, -5.0f, -15.0f)) * rotate(mat4(1.0f), radians(40.0f), vec3(1, 0, 0)); 
+    mat4 projection = perspective(radians(70.0f), (float)width/(float)height, 0.1f, 50.0f);
     mat4 vp = projection * view;
     mat4 rot = rotate(mat4(1.0f), pi<float>() / 2.0f - (float) atan(1 / sqrt(2.0)), vec3(1.0, 0.0, 0.0)) * rotate(mat4(1.0f), radians(-45.0f), vec3(0.0, 1.0, 0.0));
     float speed = 45.0f; // degrees per second
@@ -378,48 +433,94 @@ int main() {
     std::vector<mat4> model(8, mat4(1.0f));
     std::vector<int> indices(8);
     for (int i = 0; i < 8; i ++) indices[i] = i;
+    bool off = false;
+    int count = 0;
     while (!r.shouldQuit()) {
         r.clear(vec4(1.0, 1.0, 1.0, 1.0));
         r.useShaderProgram(program);
-        mat4 sc = scale(mat4(1.0f), vec3(18, 5, 18));
-        mat4 ro = rotate(mat4(1.0f), radians(-20.0f), vec3(0, 1, 0));
+        mat4 sc = scale(mat4(1.0f), vec3(16, 5, 16));
+        mat4 ro = rotate(mat4(1.0f), radians(-30.0f), vec3(0, 1, 0));
         mat4 t = translate(mat4(1.0f), vec3(0.0, -5.0, -20.0));
         r.setUniform(program, "transform", vp * t * ro * sc);
 		r.drawObject(ground);
         for (int i = 0; i < 48; i ++) {
             mat4 sc_t = scale(mat4(1.0f), vec3(0.7, 1, 0.3));
             mat4 ro_t = rotate(mat4(1.0f), radians(-7.5f * i), vec3(0, 1, 0));
-            mat4 t_t = translate(mat4(1.0f), vec3(-15 * cos(radians(7.5f * i)), 0, -15 * sin(radians(7.5f * i))));
+            mat4 t_t = translate(mat4(1.0f), vec3(-13 * cos(radians(7.5f * i)), 0, -13 * sin(radians(7.5f * i))));
             r.setUniform(program, "transform", vp * t * ro * t_t * ro_t * sc_t);
             r.drawObject(track);
         }
+        mat4 sc_sk = scale(mat4(1.0f), vec3(16, 9, 1));
+        mat4 t_sk = translate(mat4(1.0f), vec3(0, 0, -16));
+        r.setUniform(program, "transform", vp * t * ro * t_sk * sc_sk);
+        r.drawObject(sky);
+        mat4 ro_sk = rotate(mat4(1.0f), radians(90.0f), vec3(0, 1, 0));
+        r.setUniform(program, "transform", vp * t * ro * ro_sk * t_sk * sc_sk);
+        r.drawObject(sky);
         mat4 sc_f = scale(mat4(1.0f), vec3(5, 1, 5));
-        r.setUniform(program, "transform", vp * t * sc_f);
+        mat4 ro_f = rotate(mat4(1.0f), radians(45.0f), vec3(0, 1, 0));
+        r.setUniform(program, "transform", vp * t * ro * ro_f * sc_f);
         r.drawObject(square);
         mat4 sc_tr = scale(mat4(1.0f), vec3(0.5, 5, 0.5));
-        mat4 t_tr = translate(mat4(1.0f), vec3(8, 0, 8));
-        r.setUniform(program, "transform", vp * t * t_tr * sc_tr);
-        r.drawObject(tree);
-        t_tr = translate(mat4(1.0f), vec3(8, 0, 16));
-        r.setUniform(program, "transform", vp * t * t_tr * sc_tr);
-        r.drawObject(tree);
-        t_tr = translate(mat4(1.0f), vec3(8, 0, 8));
-        r.setUniform(program, "transform", vp * t * t_tr * sc_tr);
-        r.drawObject(tree);
-        t_tr = translate(mat4(1.0f), vec3(8, 0, 8));
-        r.setUniform(program, "transform", vp * t * t_tr * sc_tr);
-        r.drawObject(tree);
-        t_tr = translate(mat4(1.0f), vec3(8, 0, 8));
-        r.setUniform(program, "transform", vp * t * t_tr * sc_tr);
-        r.drawObject(tree);
-        t_tr = translate(mat4(1.0f), vec3(8, 0, 8));
-        r.setUniform(program, "transform", vp * t * t_tr * sc_tr);
-        r.drawObject(tree);
+        for (int i = 0; i < 20; i ++) {
+            mat4 ro_tr = rotate(mat4(1.0f), radians(-18.0f * i - 9.0f), vec3(0, 1, 0));
+            mat4 t_tr = translate(mat4(1.0f), vec3(-11 * cos(radians(18.0f * i + 9.0f)), 0, -11 * sin(radians(18.0f * i + 9.0f))));
+            r.setUniform(program, "transform", vp * t * t_tr * ro_tr * sc_tr);
+            r.drawObject(tree);
+        }
+
+        for (int i = 0; i < 20; i ++) {
+            mat4 ro_tr = rotate(mat4(1.0f), radians(-18.0f * i), vec3(0, 1, 0));
+            mat4 t_tr = translate(mat4(1.0f), vec3(-15 * cos(radians(18.0f * i)), 0, -15 * sin(radians(18.0f * i))));
+            r.setUniform(program, "transform", vp * t * t_tr * ro_tr * sc_tr);
+            r.drawObject(tree);
+        }
         float temp = time;
         float diff = SDL_GetTicks64()*1e-3 - time;
         float diff_2 = SDL_GetTicks64()*1e-3 - time_2;
         time += diff;
         time_2 += diff_2;
+        float angle = -20.0f * time;
+        r.useShaderProgram(program_color);
+        mat4 sc_train = scale(mat4(1.0f), vec3(0.7, 1, 0.5));
+        mat4 ro_train = rotate(mat4(1.0f), radians(-angle), vec3(0, 1, 0));
+        mat4 t_train = translate(mat4(1.0f), vec3(-13 * cos(radians(angle)), 0, -13 * sin(radians(angle))));
+        r.setUniform(program_color, "transform", vp * t * ro * t_train * ro_train * sc_train);
+        r.setUniform<vec4>(program_color, "color", vec4(1.0, 0.0, 0.0, 1.0));
+        r.drawObject(train);
+        
+        ro_train = rotate(mat4(1.0f), radians(-angle - 5.0f), vec3(0, 1, 0));
+        t_train = translate(mat4(1.0f), vec3(-13 * cos(radians(angle + 5.0f)), 0, -13 * sin(radians(angle + 5.0f))));
+        r.setUniform(program_color, "transform", vp * t * ro * t_train * ro_train * sc_train);
+        r.setUniform<vec4>(program_color, "color", vec4(1.0, 0.65, 0.0, 1.0));
+        r.drawObject(train);
+
+        ro_train = rotate(mat4(1.0f), radians(-angle - 10.0f), vec3(0, 1, 0));
+        t_train = translate(mat4(1.0f), vec3(-13 * cos(radians(angle + 10.0f)), 0, -13 * sin(radians(angle + 10.0f))));
+        r.setUniform(program_color, "transform", vp * t * ro * t_train * ro_train * sc_train);
+        r.setUniform<vec4>(program_color, "color", vec4(1.0, 1.0, 0.0, 1.0));
+        r.drawObject(train);
+
+        ro_train = rotate(mat4(1.0f), radians(-angle - 15.0f), vec3(0, 1, 0));
+        t_train = translate(mat4(1.0f), vec3(-13 * cos(radians(angle + 15.0f)), 0, -13 * sin(radians(angle + 15.0f))));
+        r.setUniform(program_color, "transform", vp * t * ro * t_train * ro_train * sc_train);
+        r.setUniform<vec4>(program_color, "color", vec4(1.0, 1.0, 1.0, 1.0));
+        r.drawObject(train);
+
+        ro_train = rotate(mat4(1.0f), radians(-angle - 20.0f), vec3(0, 1, 0));
+        t_train = translate(mat4(1.0f), vec3(-13 * cos(radians(angle + 20.0f)), 0, -13 * sin(radians(angle + 20.0f))));
+        r.setUniform(program_color, "transform", vp * t * ro * t_train * ro_train * sc_train);
+        r.setUniform<vec4>(program_color, "color", vec4(0.0, 0.0, 1.0, 1.0));
+        r.drawObject(train);
+
+        ro_train = rotate(mat4(1.0f), radians(-angle - 25.0f), vec3(0, 1, 0));
+        t_train = translate(mat4(1.0f), vec3(-13 * cos(radians(angle + 25.0f)), 0, -13 * sin(radians(angle + 25.0f))));
+        r.setUniform(program_color, "transform", vp * t * ro * t_train * ro_train * sc_train);
+        r.setUniform<vec4>(program_color, "color", vec4(0.0, 0.5, 0.0, 1.0));
+        r.drawObject(train);
+
+        r.useShaderProgram(program);
+        
         rot = rotate(mat4(1.0f), radians(60 * diff_2), vec3(0.0, 1.0, 0.0)) * rot;        
         if (((int) (time / 2) % 4) == 0) {
             if (fourth) {
@@ -435,12 +536,19 @@ int main() {
                 indices[4] = indices[5];
                 indices[5] = temp_idx;
                 fourth = false;
+                count ++;
             } else {
-                first = true;
-                model[indices[0]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[0]];
-                model[indices[1]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[1]];
-                model[indices[2]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[2]];
-                model[indices[3]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[3]];
+                if (! off) {
+                    if (count == 6) {
+                        off = true;
+                    } else {
+                        first = true;
+                        model[indices[0]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[0]];
+                        model[indices[1]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[1]];
+                        model[indices[2]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[2]];
+                        model[indices[3]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[3]];
+                    }
+                }
             }
         } else if (((int) (time / 2) % 4) == 1) {
             if (first) {
@@ -457,11 +565,13 @@ int main() {
                 indices[2] = temp_idx;
                 first = false;
             } else {
-                second = true;
-                model[indices[0]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[0]];
-                model[indices[1]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[1]];
-                model[indices[4]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[4]];
-                model[indices[5]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[5]];                
+                if (! off) {
+                    second = true;
+                    model[indices[0]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[0]];
+                    model[indices[1]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[1]];
+                    model[indices[4]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[4]];
+                    model[indices[5]] = rotate(mat4(1.0f), radians(-speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[5]];    
+                }            
             }
         } else if (((int) (time / 2) % 4) == 2) {
             if (second) {
@@ -478,11 +588,13 @@ int main() {
                 indices[0] = temp_idx;
                 second = false;
             } else {
-                third = true;
-                model[indices[0]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[0]];
-                model[indices[1]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[1]];
-                model[indices[2]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[2]];
-                model[indices[3]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[3]];
+                if (! off) {
+                    third = true;
+                    model[indices[0]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[0]];
+                    model[indices[1]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[1]];
+                    model[indices[2]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[2]];
+                    model[indices[3]] = rotate(mat4(1.0f), radians(speed * diff), vec3(1.0f,0.0f,0.0f)) * model[indices[3]];
+                }
             }
         } else {
             if (third) {
@@ -499,11 +611,13 @@ int main() {
                 indices[0] = temp_idx;
                 third = false;
             } else {
-                fourth = true;
-                model[indices[0]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[0]];
-                model[indices[1]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[1]];
-                model[indices[4]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[4]];
-                model[indices[5]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[5]];
+                if (! off) {
+                    fourth = true;
+                    model[indices[0]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[0]];
+                    model[indices[1]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[1]];
+                    model[indices[4]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[4]];
+                    model[indices[5]] = rotate(mat4(1.0f), radians(speed * diff), vec3(0.0f,1.0f,0.0f)) * model[indices[5]];
+                }
             }
         }
         mat4 sc_c = scale(mat4(1.0f), vec3(1.5, 1.5, 1.5));

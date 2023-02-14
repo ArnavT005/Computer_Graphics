@@ -94,7 +94,10 @@ namespace COL781 {
             for (int i = 0; i < mFrameHeight; i ++) {
                 mCBuffer[i].resize(mFrameWidth);
                 for (int j = 0; j < mFrameWidth; j ++) {
-                    mCBuffer[i][j].resize(mSampleSide, std::vector<glm::vec4>(mSampleSide, glm::vec4(1.0f)));
+                    mCBuffer[i][j].resize(mSampleSide);
+                    for (int k = 0; k < mSampleSide; k ++) {
+                        mCBuffer[i][j][k].resize(mSampleSide, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                    }
                 }
             }
             mZBuffer.clear();
@@ -102,7 +105,10 @@ namespace COL781 {
             for (int i = 0; i < mFrameHeight; i ++) {
                 mZBuffer[i].resize(mFrameWidth);
                 for (int j = 0; j < mFrameWidth; j ++) {
-                    mZBuffer[i][j].resize(mSampleSide, std::vector<float>(mSampleSide, 1.0f));
+                    mZBuffer[i][j].resize(mSampleSide);
+                    for (int k = 0; k < mSampleSide; k ++) {
+                        mZBuffer[i][j][k].resize(mSampleSide, 1.0f);
+                    }
                 }
             }
         }
@@ -363,7 +369,10 @@ namespace COL781 {
             for (int i = 0; i < mFrameHeight; i ++) {
                 mCBuffer[i].resize(mFrameWidth);
                 for (int j = 0; j < mFrameWidth; j ++) {
-                    mCBuffer[i][j].resize(mSampleSide, std::vector<glm::vec4>(mSampleSide, glm::vec4(1.0f)));
+                    mCBuffer[i][j].resize(mSampleSide);
+                    for (int k = 0; k < mSampleSide; k ++) {
+                        mCBuffer[i][j][k].resize(mSampleSide, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                    }
                 }
             }
             mZBuffer.clear();
@@ -371,7 +380,10 @@ namespace COL781 {
             for (int i = 0; i < mFrameHeight; i ++) {
                 mZBuffer[i].resize(mFrameWidth);
                 for (int j = 0; j < mFrameWidth; j ++) {
-                    mZBuffer[i][j].resize(mSampleSide, std::vector<float>(mSampleSide, 1.0f));
+                    mZBuffer[i][j].resize(mSampleSide);
+                    for (int k = 0; k < mSampleSide; k ++) {
+                        mZBuffer[i][j][k].resize(mSampleSide, 1.0f);
+                    }
                 }
             }
             return true;
@@ -394,7 +406,10 @@ namespace COL781 {
             for (int i = 0; i < mFrameHeight; i ++) {
                 mCBuffer[i].resize(mFrameWidth);
                 for (int j = 0; j < mFrameWidth; j ++) {
-                    mCBuffer[i][j].resize(mSampleSide, std::vector<glm::vec4>(mSampleSide, glm::vec4(1.0f)));
+                    mCBuffer[i][j].resize(mSampleSide);
+                    for (int k = 0; k < mSampleSide; k ++) {
+                        mCBuffer[i][j][k].resize(mSampleSide, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                    }
                 }
             }
             mZBuffer.clear();
@@ -402,7 +417,10 @@ namespace COL781 {
             for (int i = 0; i < mFrameHeight; i ++) {
                 mZBuffer[i].resize(mFrameWidth);
                 for (int j = 0; j < mFrameWidth; j ++) {
-                    mZBuffer[i][j].resize(mSampleSide, std::vector<float>(mSampleSide, 1.0f));
+                    mZBuffer[i][j].resize(mSampleSide);
+                    for (int k = 0; k < mSampleSide; k ++) {
+                        mZBuffer[i][j][k].resize(mSampleSide, 1.0f);
+                    }
                 }
             }
             return true;
@@ -429,8 +447,14 @@ namespace COL781 {
             mSampleSide = (int) sqrt(sampleCount);
             for (int i = 0; i < mFrameHeight; i ++) {
                 for (int j = 0; j < mFrameWidth; j ++) {
-                    mCBuffer[i][j].resize(mSampleSide, std::vector<glm::vec4>(mSampleSide, glm::vec4(1.0f)));
-                    mZBuffer[i][j].resize(mSampleSide, std::vector<float>(mSampleSide, 1.0f));
+                    mCBuffer[i][j].clear();
+                    mZBuffer[i][j].clear();
+                    mCBuffer[i][j].resize(mSampleSide);
+                    mZBuffer[i][j].resize(mSampleSide);
+                    for (int k = 0; k < mSampleSide; k ++) {
+                        mCBuffer[i][j][k].resize(mSampleSide, glm::vec4(1.0, 1.0, 1.0, 1.0));
+                        mZBuffer[i][j][k].resize(mSampleSide, 1.0f);
+                    }
                 }
             }
             return true;
