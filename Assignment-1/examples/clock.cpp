@@ -3,8 +3,8 @@
 #include <iostream>
 using namespace std;
 
-// namespace R = COL781::Software;
-namespace R = COL781::Hardware;
+namespace R = COL781::Software;
+// namespace R = COL781::Hardware;
 using namespace glm;
 
 int main() {
@@ -14,14 +14,14 @@ int main() {
     R::ShaderProgram program = r.createShaderProgram(
         r.vsColorTransform(),
         r.fsIdentity()
-    );  
+    );
+
     vec4 unitSquare[] = {
             vec4(-0.5, -0.5, 0.0, 1.0),
             vec4(0.5, -0.5, 0.0, 1.0),
             vec4(0.5, 0.5, 0.0, 1.0),
             vec4(-0.5, 0.5, 0.0, 1.0)
     };
-
 
     vec4 forkColors[] = {
 		vec4(0.0, 0.0, 0.0, 1.0),
@@ -51,7 +51,6 @@ int main() {
         vec4(0.0, 0.0, 1.0, 1.0)
     };
 
-
 	ivec3 forkTriangles[] = {
 		ivec3(0, 1, 2),
 		ivec3(0, 2, 3)
@@ -60,7 +59,6 @@ int main() {
 	r.setVertexAttribs(fork, 0, 4, unitSquare);
 	r.setVertexAttribs(fork, 1, 4, forkColors);
 	r.setTriangleIndices(fork, 2, forkTriangles);
-
 
     R::Object secondHand = r.createObject();
     r.setVertexAttribs(secondHand, 0, 4, unitSquare);
@@ -78,16 +76,11 @@ int main() {
     r.setTriangleIndices(hourHand, 2, forkTriangles);
     // rotate hourHand by z xaxis by 45 degrees
 
-
-
-
-
     mat4 iScale = scale(mat4(1.0f), vec3(0.01f, 0.04f, 1.0f));
     mat4 iScaleLarge = scale(mat4(1.0f), vec3(0.0125f, 0.125f, 1.0f));
     mat4 iScaleNumber = scale(mat4(1.0f), vec3(0.01f, 0.15f, 1.0f));
     float markingRadiusFork = 0.90f;
     float markingRadiusNumber = 0.7f;
-
 
     while (!r.shouldQuit()) {
         Uint32 displayTime = 0;
@@ -121,13 +114,10 @@ int main() {
         // II
         MARK_2D_I(60.0f, 2, 1,r);
         MARK_2D_I(60.0f, 3, 1.05,r);
-
-
         // III
         MARK_2D_I(90.0f, 4, 1.0,r);
         MARK_2D_I(90.0f, 5, 1.05,r);
         MARK_2D_I(90.0f, 6, 1.10,r);
-
         // IV
         MARK_2D_I(120.0f, 7, 1.0,r);
         MARK_2D_V(120.f, 8, 1, 1.1,r);
@@ -135,7 +125,6 @@ int main() {
         // V
         MARK_2D_V(150.f, 10, 1, 1.05,r);
         MARK_2D_V(150.f, 11, -1, 1.05,r);
-
         // VI
         MARK_2D_V(180.f, 12, 1, 0.90,r);
         MARK_2D_V(180.f, 13, -1, 0.90,r);
@@ -144,37 +133,28 @@ int main() {
         mat4 markingTranslate14 = translate(mat4(1.0f), markingCenterCoordinate14);
         r.setUniform(program, "transform", markingTranslate14 * iScaleNumber);
         r.drawObject(fork);
-
         // VII
         MARK_2D_V(210.f, 15, 1, 1.05,r);
         MARK_2D_V(210.f, 16, -1, 1.05,r);
         MARK_2D_I(210.0f,17, 0.85,r);
         MARK_2D_I(210.0f,18, 0.80,r);
-
-
         // VIII
         MARK_2D_V(240.f, 19, 1, 1.05,r);
         MARK_2D_V(240.f, 20, -1, 1.05,r);
         MARK_2D_I(240.0f,21, 0.95,r);
         MARK_2D_I(240.0f,22, 0.90,r);
         MARK_2D_I(240.0f,23, 0.85,r);
-
         // IX
         MARK_2D_I(270.0f,24, 1.1,r);
         MARK_2D_X(270.f, 25, 1, 1.05,r);
         MARK_2D_X(270.f, 26, -1, 1.05,r);
-
         // X
         MARK_2D_X(300.f, 27, 1, 1.05,r);
         MARK_2D_X(300.f, 28, -1, 1.05,r);
-
-
         // XI
         MARK_2D_X(330.f, 29, 1, 1.0,r);
         MARK_2D_X(330.f, 30, -1, 1.0,r);
         MARK_2D_I(330.0f,31, 0.90,r);
-
-
         // XII
         MARK_2D_X(360.f, 32, 1, 1.0,r);
         MARK_2D_X(360.f, 33, -1, 1.0,r);
@@ -189,7 +169,6 @@ int main() {
         mat4 markingTranslate35 = translate(mat4(1.0f), markingCenterCoordinate35);
         r.setUniform(program, "transform", markingTranslate35 * iScaleNumber);
         r.drawObject(fork);
-
 
         Uint32 secondPassed = seconds;
         float secondHandRadius = 0.40f;
@@ -220,15 +199,8 @@ int main() {
         mat4 hourHandTranslate = translate(mat4(1.0f), hourHandCenterCoordinate);
         r.setUniform(program, "transform",  hourHandTranslate * hourHandRotate * hourHandScale);
         r.drawObject(hourHand);
-
-
-
         r.show();
     }
-
-
-
-    
     r.deleteShaderProgram(program);
     return EXIT_SUCCESS;
 }
