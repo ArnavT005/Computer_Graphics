@@ -91,6 +91,7 @@ int main() {
         Uint32 displayTime = 0;
         auto now = std::chrono::system_clock::now();
         auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+        displayTime = timestamp % 60000;
         r.clear(vec4(1.0, 1.0, 1.0, 1.0));
         r.useShaderProgram(program);
         for (int i = 0; i < 60; i ++) {
@@ -190,7 +191,8 @@ int main() {
         mat4 secondHandTranslate = translate(mat4(1.0f), secondHandCenterCoordinate);
         r.setUniform(program, "transform", secondHandTranslate * secondHandRotate * secondHandScale);
         r.drawObject(secondHand);
-        
+
+        float minutePassed = (displayTime / 60.0f) - 60 * (displayTime / 3600);
         float minuteHandRadius = 0.30f;
         mat4 minuteHandScale = scale(mat4(1.0f), vec3(0.05f, 0.6f, 1.0f));
         float minuteHandAngle = radians(minutePassed * 6.0f);
