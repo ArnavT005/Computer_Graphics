@@ -22,7 +22,7 @@ namespace COL781 {
         class Mesh;
 
         struct HalfEdge {
-            int id;
+            std::pair<int, int> id;
             std::pair<int, int> pairId, nextId;
             int headId;
             int edgeId;

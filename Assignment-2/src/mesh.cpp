@@ -1,6 +1,7 @@
 #include "mesh.hpp"
 
 #include <iostream>
+#include <map>
 
 namespace COL781 {
     namespace Mesh {
@@ -119,27 +120,17 @@ namespace COL781 {
         Mesh::Mesh(int numFaces, int numVertices, glm::ivec3 *pFaces, glm::vec3 *pVertices, glm::vec3 *pNormals) {
             mFaces.resize(numFaces);
             mVertices.resize(numVertices);
+            for (int i = 0; i < numVertices; i ++) {
+                mVertices[i] = {i, false, glm::vec3(0), pVertices[i], {-1, -1}, this};               
+                if (pNormals != nullptr) {
+                    mVertices[i].normal = pNormals[i];
+                }
+            }
             for (int i = 0; i < numFaces; i ++) {
-                mFaces[i].id = i;
-                mFaces[i].isVirtual = false;
-                mFaces[i].indices = pFaces[i];
-                mFaces[i].halfEdgeId = {-1, -1};
-                mFaces[i].mesh = this;
+                mFaces[i] = {i, false, glm::vec3(0), pFaces[i], {-1, -1}, this};
                 glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = crossProduct(a, b);
-            }
-            for (int i = 0; i < numVertices; i ++) {
-                mVertices[i].id = i;
-                mVertices[i].isBoundary = false;
-                mVertices[i].position = pVertices[i];
-                mVertices[i].halfEdgeId = {-1, -1};
-                mVertices[i].mesh = this;                
-                if (pNormals == nullptr) {
-                    mVertices[i].normal = glm::vec3(0);
-                } else {
-                    mVertices[i].normal = pNormals[i];
-                }
             }
         }
 
@@ -150,14 +141,8 @@ namespace COL781 {
             }
             mVertices.resize(numVertices);
             for (int i = 0; i < numVertices; i ++) {
-                mVertices[i].id = i;
-                mVertices[i].isBoundary = false;
-                mVertices[i].position = pVertices[i];
-                mVertices[i].halfEdgeId = {-1, -1};
-                mVertices[i].mesh = this;
-                if (pNormals == nullptr) {
-                    mVertices[i].normal = glm::vec3(0);
-                } else {
+                mVertices[i] = {i, false, glm::vec3(0), pVertices[i], {-1, -1}, this};
+                if (pNormals != nullptr) {
                     mVertices[i].normal = pNormals[i];
                 }
             }
@@ -171,11 +156,7 @@ namespace COL781 {
             }
             mFaces.resize(numFaces);
             for (int i = 0; i < numFaces; i ++) {
-                mFaces[i].id = i;
-                mFaces[i].isVirtual = false;
-                mFaces[i].indices = pFaces[i];
-                mFaces[i].halfEdgeId = {-1, -1};
-                mFaces[i].mesh = this;
+                mFaces[i] = {i, false, glm::vec3(0), pFaces[i], {-1, -1}, this};
                 glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = crossProduct(a, b);
@@ -295,8 +276,87 @@ namespace COL781 {
             return nullptr;
         }
 
-        void connect() {
-            // insert code for connecting mesh data structure using half edges
+        void Mesh::connect() {
+            if (isConnected) {
+                return;
+            }
+            std::map<std::pair<int, int>, int> vertexToEdge;
+            for (int i = 0; i < mFaces.size(); i ++) {
+                int a = mFaces[i].indices[0];
+                int b = mFaces[i].indices[1];
+                int c = mFaces[i].indices[2];
+                std::pair<int, int> faceHalfEdges[3];
+                if (vertexToEdge.find({std::min(a, b), std::max(a, b)}) == vertexToEdge.end()) {
+                    vertexToEdge.insert({{std::min(a, b), std::max(a, b)}, mEdges.size()});
+                    int edgeId = mEdges.size();
+                    int halfEdgeId = mHalfEdges.size();
+                    mEdges.push_back(Edge());
+                    mHalfEdges.push_back({HalfEdge(), HalfEdge()});
+                    mEdges[edgeId] = {edgeId, true, {halfEdgeId, 0}, this};
+                    mHalfEdges[halfEdgeId][0] = {{halfEdgeId, 0}, {halfEdgeId, 1}, {-1, -1}, a, edgeId, i, this};
+                    mHalfEdges[halfEdgeId][1] = {{halfEdgeId, 1}, {halfEdgeId, 0}, {-1, -1}, b, edgeId, -1, this};
+                    faceHalfEdges[0] = {halfEdgeId, 0};
+                    mFaces[i].halfEdgeId = faceHalfEdges[0];
+                    if (mVertices[a].halfEdgeId.first < 0) {
+                        mVertices[a].halfEdgeId = {halfEdgeId, 0};
+                    }
+                    if (mVertices[b].halfEdgeId.first < 0) {
+                        mVertices[b].halfEdgeId = {halfEdgeId, 1};
+                    }
+                } else {
+                    int edgeId = vertexToEdge[{std::min(a, b), std::max(a, b)}];
+                    mEdges[edgeId].isBoundary = false;
+                    std::pair<int, int> hId = mEdges[edgeId].halfEdgeId;
+                    faceHalfEdges[0] = mHalfEdges[hId.first][hId.second].pairId;
+                    mFaces[i].halfEdgeId = faceHalfEdges[0];
+                    mHalfEdges[faceHalfEdges[0].first][faceHalfEdges[0].second].faceId = i;
+                    vertexToEdge.erase({std::min(a, b), std::max(a, b)});
+                }
+                if (vertexToEdge.find({std::min(b, c), std::max(b, c)}) == vertexToEdge.end()) {
+                    vertexToEdge.insert({{std::min(b, c), std::max(b, c)}, mEdges.size()});
+                    int edgeId = mEdges.size();
+                    int halfEdgeId = mHalfEdges.size();
+                    mEdges.push_back(Edge());
+                    mHalfEdges.push_back({HalfEdge(), HalfEdge()});
+                    mEdges[edgeId] = {edgeId, true, {halfEdgeId, 0}, this};
+                    mHalfEdges[halfEdgeId][0] = {{halfEdgeId, 0}, {halfEdgeId, 1}, {-1, -1}, b, edgeId, i, this};
+                    mHalfEdges[halfEdgeId][1] = {{halfEdgeId, 1}, {halfEdgeId, 0}, {-1, -1}, c, edgeId, -1, this};
+                    faceHalfEdges[1] = {halfEdgeId, 0};
+                    if (mVertices[c].halfEdgeId.first < 0) {
+                        mVertices[c].halfEdgeId = {halfEdgeId, 1};
+                    }
+                } else {
+                    int edgeId = vertexToEdge[{std::min(b, c), std::max(b, c)}];
+                    mEdges[edgeId].isBoundary = false;
+                    std::pair<int, int> hId = mEdges[edgeId].halfEdgeId;
+                    faceHalfEdges[1] = mHalfEdges[hId.first][hId.second].pairId;
+                    mHalfEdges[faceHalfEdges[1].first][faceHalfEdges[1].second].faceId = i;
+                    vertexToEdge.erase({std::min(b, c), std::max(b, c)});
+                }
+                if (vertexToEdge.find({std::min(c, a), std::max(c, a)}) == vertexToEdge.end()) {
+                    vertexToEdge.insert({{std::min(c, a), std::max(c, a)}, mEdges.size()});
+                    int edgeId = mEdges.size();
+                    int halfEdgeId = mHalfEdges.size();
+                    mEdges.push_back(Edge());
+                    mHalfEdges.push_back({HalfEdge(), HalfEdge()});
+                    mEdges[edgeId] = {edgeId, true, {halfEdgeId, 0}, this};
+                    mHalfEdges[halfEdgeId][0] = {{halfEdgeId, 0}, {halfEdgeId, 1}, {-1, -1}, c, edgeId, i, this};
+                    mHalfEdges[halfEdgeId][1] = {{halfEdgeId, 1}, {halfEdgeId, 0}, {-1, -1}, a, edgeId, -1, this};
+                    faceHalfEdges[2] = {halfEdgeId, 0};
+                } else {
+                    int edgeId = vertexToEdge[{std::min(c, a), std::max(c, a)}];
+                    mEdges[edgeId].isBoundary = false;
+                    std::pair<int, int> hId = mEdges[edgeId].halfEdgeId;
+                    faceHalfEdges[2] = mHalfEdges[hId.first][hId.second].pairId;
+                    mHalfEdges[faceHalfEdges[2].first][faceHalfEdges[2].second].faceId = i;
+                    vertexToEdge.erase({std::min(c, a), std::max(c, a)});
+                }
+                mHalfEdges[faceHalfEdges[0].first][faceHalfEdges[0].second].nextId = faceHalfEdges[1];
+                mHalfEdges[faceHalfEdges[1].first][faceHalfEdges[1].second].nextId = faceHalfEdges[2];
+                mHalfEdges[faceHalfEdges[2].first][faceHalfEdges[2].second].nextId = faceHalfEdges[0];
+            }
+            // deal with boundary edges (virtual face)
+            isConnected = true;
         }
 
         void Mesh::send(V::Viewer viewer) {
