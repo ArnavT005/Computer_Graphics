@@ -99,6 +99,14 @@ namespace COL781 {
             return faces;
         }
         
+        glm::vec3 Mesh::crossProduct(glm::vec3 a, glm::vec3 b) {
+            float x = a.y * b.z - a.z * b.y;
+            float y = a.z * b.x - a.x * b.z;
+            float z = a.x * b.y - a.y * b.x;
+            float norm = sqrt(x * x + y * y + z * z);
+            return glm::vec3(x, y, z) / norm;
+        }
+
         Mesh::Mesh() {
             mHalfEdges.clear();
             mVertices.clear();
@@ -117,7 +125,9 @@ namespace COL781 {
                 mFaces[i].indices = pFaces[i];
                 mFaces[i].halfEdgeId = {-1, -1};
                 mFaces[i].mesh = this;
-                // set face normal
+                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
+                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
+                mFaces[i].normal = crossProduct(a, b);
             }
             for (int i = 0; i < numVertices; i ++) {
                 mVertices[i].id = i;
@@ -166,7 +176,9 @@ namespace COL781 {
                 mFaces[i].indices = pFaces[i];
                 mFaces[i].halfEdgeId = {-1, -1};
                 mFaces[i].mesh = this;
-                // set face normal
+                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
+                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
+                mFaces[i].normal = crossProduct(a, b);
             }
             return true;
         }

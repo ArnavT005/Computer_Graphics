@@ -71,6 +71,8 @@ namespace COL781 {
                 std::vector<Face> mFaces;
                 std::vector<int> mVirtualFaces;
                 bool isConnected;
+                glm::vec3 crossProduct(glm::vec3, glm::vec3);
+
             public:
                 Mesh();
                 Mesh(int, int, glm::ivec3*, glm::vec3*, glm::vec3* = nullptr);
@@ -90,10 +92,10 @@ namespace COL781 {
                 void send(V::Viewer);
                 void destroy();
 
-                friend class HalfEdge;
-                friend class Vertex;
-                friend class Edge;
-                friend class Face;
+                friend struct HalfEdge;
+                friend struct Vertex;
+                friend struct Edge;
+                friend struct Face;
         };
     }
 }
