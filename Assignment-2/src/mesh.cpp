@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <set>
 
 namespace COL781 {
     namespace Mesh {
@@ -247,9 +248,6 @@ namespace COL781 {
             }
             std::vector<glm::ivec3> faces(mFaces.size() - mVirtualFaces.size());
             for (int i = 0; i < faces.size(); i ++) {
-                if (mFaces[i].isVirtual) {
-                    continue;
-                }
                 faces[i] = mFaces[i].indices;
             }
             return faces.data();
@@ -355,7 +353,48 @@ namespace COL781 {
                 mHalfEdges[faceHalfEdges[1].first][faceHalfEdges[1].second].nextId = faceHalfEdges[2];
                 mHalfEdges[faceHalfEdges[2].first][faceHalfEdges[2].second].nextId = faceHalfEdges[0];
             }
-            // deal with boundary edges (virtual face)
+            std::map<int, std::vector<int>> boundaryVertices;
+            for (auto iter = vertexToEdge.begin(); iter != vertexToEdge.end(); iter ++) {
+                if (boundaryVertices.find(iter->first.first) == boundaryVertices.end()) {
+                    boundaryVertices.insert({iter->first.first, std::vector<int>(1, iter->second)});
+                } else {
+                    boundaryVertices[iter->first.first].push_back(iter->second);
+                }
+                if (boundaryVertices.find(iter->first.second) == boundaryVertices.end()) {
+                    boundaryVertices.insert({iter->first.second, std::vector<int>(1, iter->second)});
+                } else {
+                    boundaryVertices[iter->first.second].push_back(iter->second);
+                }
+            }
+            vertexToEdge.clear();
+            std::set<std::pair<int, int>> boundaryHalfEdges;
+            for (auto iter = boundaryVertices.begin(); iter != boundaryVertices.end(); iter ++) {
+                int vertexId = iter->first;
+                int edgeId[] = {iter->second[0], iter->second[1]};
+                std::pair<int, int> hId[] = {mEdges[edgeId[0]].halfEdgeId, mEdges[edgeId[1]].halfEdgeId};
+                std::pair<int, int> pId[] = {mHalfEdges[hId[0].first][hId[0].second].pairId, mHalfEdges[hId[1].first][hId[1].second].pairId};
+                if (vertexId == mHalfEdges[pId[0].first][pId[0].second].headId) {
+                    mHalfEdges[pId[1].first][pId[1].second].nextId = pId[0];
+                } else {
+                    mHalfEdges[pId[0].first][pId[0].second].nextId = pId[1];
+                }
+                boundaryHalfEdges.insert(pId[0]);
+                boundaryHalfEdges.insert(pId[1]);
+            }
+            boundaryVertices.clear();
+            while (!boundaryHalfEdges.empty()) {
+                std::pair<int, int> hId = *boundaryHalfEdges.begin();
+                std::pair<int, int> tId = hId;
+                int faceId = mFaces.size();
+                mFaces.push_back(Face());
+                mFaces[faceId] = {faceId, true, glm::vec3(0), glm::ivec3(0), hId, this};
+                mVirtualFaces.push_back(faceId);
+                do {
+                    mHalfEdges[tId.first][tId.second].faceId = faceId;
+                    boundaryHalfEdges.erase(tId);
+                    tId = mHalfEdges[tId.first][tId.second].nextId;
+                } while (tId != hId);
+            }
             isConnected = true;
         }
 
