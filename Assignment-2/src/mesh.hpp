@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 #include "viewer.hpp"
 
 namespace V = COL781::Viewer;
@@ -71,6 +72,7 @@ namespace COL781 {
                 std::vector<Face> mFaces;
                 std::vector<int> mVirtualFaces;
                 bool isConnected;
+                glm::vec3 normalize(glm::vec3);
                 glm::vec3 crossProduct(glm::vec3, glm::vec3);
 
             public:
@@ -91,8 +93,8 @@ namespace COL781 {
                 void connect();
                 void send(V::Viewer&);
                 void destroy();
-                void createSquareMesh(int, int);
-                void createSphereMesh(int, int);
+                void createSquareMesh(int, int, float = 0.5);
+                void createSphereMesh(int, int, float = 0.5);
 
                 friend struct HalfEdge;
                 friend struct Vertex;

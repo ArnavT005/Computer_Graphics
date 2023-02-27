@@ -101,12 +101,16 @@ namespace COL781 {
             return faces;
         }
         
+        glm::vec3 Mesh::normalize(glm::vec3 a) {
+            float norm = sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+            return a / norm;
+        }
+
         glm::vec3 Mesh::crossProduct(glm::vec3 a, glm::vec3 b) {
             float x = a.y * b.z - a.z * b.y;
             float y = a.z * b.x - a.x * b.z;
             float z = a.x * b.y - a.y * b.x;
-            float norm = sqrt(x * x + y * y + z * z);
-            return glm::vec3(x, y, z) / norm;
+            return glm::vec3(x, y, z);
         }
 
         Mesh::Mesh() {
@@ -131,7 +135,7 @@ namespace COL781 {
                 mFaces[i] = {i, false, glm::vec3(0), pFaces[i], {-1, -1}, this};
                 glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
-                mFaces[i].normal = crossProduct(a, b);
+                mFaces[i].normal = normalize(crossProduct(a, b));
             }
         }
 
@@ -160,7 +164,7 @@ namespace COL781 {
                 mFaces[i] = {i, false, glm::vec3(0), pFaces[i], {-1, -1}, this};
                 glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
-                mFaces[i].normal = crossProduct(a, b);
+                mFaces[i].normal = normalize(crossProduct(a, b));
             }
             return true;
         }
@@ -416,13 +420,13 @@ namespace COL781 {
             isConnected = false;
         }
 
-        void Mesh::createSquareMesh(int m, int n) {
+        void Mesh::createSquareMesh(int m, int n, float s) {
             destroy();
             std::vector<glm::vec3> vertices, normals;
             std::vector<glm::ivec3> triangles;
             for (int i = 0; i <= m; i ++) {
                 for (int j = 0; j <= n; j ++) {
-                    vertices.push_back(glm::vec3(-0.5 + j / (float) n, 0.5 - i / (float) m, 0));
+                    vertices.push_back(glm::vec3(-s + j / (float) n, s - i / (float) m, 0));
                     normals.push_back(glm::vec3(0, 0, 1));
                 }
             }
@@ -437,8 +441,39 @@ namespace COL781 {
             connect();
         }
 
-        void Mesh::createSphereMesh(int m, int n) {
-
+        void Mesh::createSphereMesh(int m, int n, float r) {
+            destroy();
+            std::vector<glm::vec3> vertices(1, glm::vec3(0, 0, r)), normals(1, glm::vec3(0, 0, 1));
+            std::vector<glm::ivec3> triangles;
+            for (int i = 1; i < n; i ++) {
+                for (int j = 0; j < m; j ++) {
+                    double phi = 2 * j * glm::pi<double>() / m;
+                    double theta = i * glm::pi<double>() / n;
+                    vertices.push_back(glm::vec3(r * glm::sin(theta) * glm::cos(phi), r * glm::sin(theta) * glm::sin(phi), r * glm::cos(theta)));
+                    normals.push_back(vertices.back() / r);
+                }
+            }
+            vertices.push_back(glm::vec3(0, 0, -r));
+            normals.push_back(vertices.back() / r);
+            for (int i = 1; i < m; i ++) {
+                triangles.push_back(glm::ivec3(0, i, i + 1));
+            }
+            triangles.push_back(glm::ivec3(0, m, 1));
+            for (int i = 1; i < n - 1; i ++) {
+                for (int j = 0; j < m - 1; j ++) {
+                    triangles.push_back(glm::ivec3((i - 1) * m + 1 + j, i * m + 1 + j, (i - 1) * m + j + 2));
+                    triangles.push_back(glm::ivec3(i * m + 1 + j, i * m + j + 2, (i - 1) * m + j + 2));
+                }
+                triangles.push_back(glm::ivec3(i * m, (i + 1) * m, (i - 1) * m + 1));
+                triangles.push_back(glm::ivec3((i + 1) * m, i * m + 1, (i - 1) * m + 1));
+            }
+            for (int i = m * (n - 2) + 1; i < m * (n - 1); i ++) {
+                triangles.push_back(glm::ivec3(i, m * (n - 1) + 1, i + 1));
+            }
+            triangles.push_back(glm::ivec3(m * (n - 1), m * (n - 1) + 1, m * (n - 2) + 1));
+            setVertices(m * (n - 1) + 2, vertices.data(), normals.data());
+            setFaces(2 * m * (n - 1), triangles.data());
+            connect();
         }
 
     }

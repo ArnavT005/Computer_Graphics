@@ -16,3 +16,6 @@ target_link_libraries(example viewer)
 
 add_executable(square_mesh examples/square_mesh.cpp)
 target_link_libraries(square_mesh viewer)
+
+add_executable(sphere_mesh examples/sphere_mesh.cpp)
+target_link_libraries(sphere_mesh viewer)
