@@ -82,15 +82,17 @@ namespace COL781 {
                 std::vector<int> getAdjacentVertices(Entity, int);
                 std::vector<int> getAdjacentEdges(Entity, int);
                 std::vector<int> getAdjacentFaces(Entity, int);
-                glm::vec3* getVertices();
-                glm::vec3* getNormals();
-                glm::ivec3* getFaces();
+                std::vector<glm::vec3> getVertices();
+                std::vector<glm::vec3> getNormals();
+                std::vector<glm::ivec3> getFaces();
                 Vertex* getVertex(int);
                 Edge* getEdge(int);
                 Face* getFace(int);
                 void connect();
-                void send(V::Viewer);
+                void send(V::Viewer&);
                 void destroy();
+                void createSquareMesh(int, int);
+                void createSphereMesh(int, int);
 
                 friend struct HalfEdge;
                 friend struct Vertex;

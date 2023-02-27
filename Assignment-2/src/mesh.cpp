@@ -220,37 +220,37 @@ namespace COL781 {
             }
         }
 
-        glm::vec3* Mesh::getVertices() {
+        std::vector<glm::vec3> Mesh::getVertices() {
             if (mVertices.size() == 0) {
-                return nullptr;
+                return std::vector<glm::vec3>();
             }
             std::vector<glm::vec3> vertices(mVertices.size());
             for (int i = 0; i < vertices.size(); i ++) {
                 vertices[i] = mVertices[i].position;
             }
-            return vertices.data();
+            return vertices;
         }
 
-        glm::vec3* Mesh::getNormals() {
+        std::vector<glm::vec3> Mesh::getNormals() {
             if (mVertices.size() == 0) {
-                return nullptr;
+                return std::vector<glm::vec3>();
             }
             std::vector<glm::vec3> normals(mVertices.size());
             for (int i = 0; i < normals.size(); i ++) {
                 normals[i] = mVertices[i].normal;
             }
-            return normals.data();
+            return normals;
         }
 
-        glm::ivec3* Mesh::getFaces() {
+        std::vector<glm::ivec3> Mesh::getFaces() {
             if (mFaces.size() == 0) {
-                return nullptr;
+                return std::vector<glm::ivec3>();
             }
             std::vector<glm::ivec3> faces(mFaces.size() - mVirtualFaces.size());
             for (int i = 0; i < faces.size(); i ++) {
                 faces[i] = mFaces[i].indices;
             }
-            return faces.data();
+            return faces;
         }
 
         Vertex* Mesh::getVertex(int id) {
@@ -398,13 +398,13 @@ namespace COL781 {
             isConnected = true;
         }
 
-        void Mesh::send(V::Viewer viewer) {
-            glm::vec3 *vertices = getVertices();
-            glm::vec3 *normals = getNormals();
-            glm::ivec3 *triangles = getFaces();
-            viewer.setVertices(mVertices.size(), vertices);
-            viewer.setNormals(mVertices.size(), normals);
-            viewer.setTriangles(mFaces.size() - mVirtualFaces.size(), triangles);
+        void Mesh::send(V::Viewer &viewer) {
+            std::vector<glm::vec3> vertices = getVertices();
+            std::vector<glm::vec3> normals = getNormals();
+            std::vector<glm::ivec3> triangles = getFaces();
+            viewer.setVertices(mVertices.size(), vertices.data());
+            viewer.setNormals(mVertices.size(), normals.data());
+            viewer.setTriangles(mFaces.size() - mVirtualFaces.size(), triangles.data());
         }
 
         void Mesh::destroy() {
@@ -414,6 +414,31 @@ namespace COL781 {
             mFaces.clear();
             mVirtualFaces.clear();
             isConnected = false;
+        }
+
+        void Mesh::createSquareMesh(int m, int n) {
+            destroy();
+            std::vector<glm::vec3> vertices, normals;
+            std::vector<glm::ivec3> triangles;
+            for (int i = 0; i <= m; i ++) {
+                for (int j = 0; j <= n; j ++) {
+                    vertices.push_back(glm::vec3(-0.5 + j / (float) n, 0.5 - i / (float) m, 0));
+                    normals.push_back(glm::vec3(0, 0, 1));
+                }
+            }
+            for (int i = 0; i < m; i ++) {
+                for (int j = 0; j < n; j ++) {
+                    triangles.push_back(glm::ivec3((i + 1) * (n + 1) + j, i * (n + 1) + j + 1, i * (n + 1) + j));
+                    triangles.push_back(glm::ivec3((i + 1) * (n + 1) + j, (i + 1) * (n + 1) + j + 1, i * (n + 1) + j + 1));
+                }
+            }
+            setVertices((m + 1) * (n + 1), vertices.data(), normals.data());
+            setFaces(2 * m * n, triangles.data());
+            connect();
+        }
+
+        void Mesh::createSphereMesh(int m, int n) {
+
         }
 
     }
