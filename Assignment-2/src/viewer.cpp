@@ -1,6 +1,6 @@
 #include "viewer.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <iostream>
 namespace COL781 {
 	namespace Viewer {
 
@@ -120,11 +120,27 @@ namespace COL781 {
 					camera.updateViewMatrix();
 				}
 
+				buttonState = SDL_GetMouseState(&xPos, &yPos);
+				if( buttonState & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+					// Update camera parameters
+
+					float deltaY =  (float)(lastyPos - yPos) * 0.01f;
+					glm::mat4 dollyTransform = glm::mat4(1.0f);
+					dollyTransform = glm::translate(dollyTransform, normalize(camera.lookAt - camera.position) * deltaY);
+					glm::vec3 newCameraPosition = dollyTransform * glm::vec4(camera.position, 1.0f);
+					float newCameraFov = 2 * glm::atan(600.0f / (2 * deltaY)); // TODO Ask
+					
+					if(signbit(newCameraPosition.z) == signbit(camera.position.z)) {
+						camera.position = newCameraPosition;
+						camera.fov = newCameraFov; // TODO Ask
+						}
+				}
+
 				lastxPos = xPos;
 				lastyPos = yPos;
 
 				view = camera.getViewMatrix();
-
+				
 				r.setUniform(program, "modelView", view*model);
 				r.setUniform(program, "projection", projection);
 				r.setUniform(program, "lightPos", camera.position);
@@ -144,75 +160,3 @@ namespace COL781 {
 
 	}
 }
-
-		// void Rasterizer::show(Camera* cam) {
-		// 	SDL_GL_SwapWindow(window);
-		// 	SDL_Event e;
-		// 	while (SDL_PollEvent(&e) != 0) {
-		// 		if(e.type == SDL_QUIT) {
-		// 			quit = true;
-		// 		}
-		// 		else if(e.type == SDL_KEYDOWN) {
-		// 			//TODO clean
-		// 			// std::cout<<e.key.keysym.sym<<" key pressed"<<std::endl;
-		// 			int key = e.key.keysym.sym;
-		// 			if(key == 119) {
-		// 				cam->cameraPos += cam->cameraSpeed * cam->cameraFront;
-		// 			}
-		// 			else if(key == 115) {
-		// 				cam->cameraPos -= cam->cameraSpeed * cam->cameraFront;
-		// 			}
-		// 			else if(key == 97) {
-		// 				cam->cameraPos -= cam->cameraSpeed * glm::normalize(glm::cross(cam->cameraFront, cam->cameraUp));
-		// 			}
-		// 			else if(key == 100) {
-		// 				cam->cameraPos += cam->cameraSpeed * glm::normalize(glm::cross(cam->cameraFront, cam->cameraUp));
-		// 			}
-		// 		}
-		// 		else if(e.type == SDL_MOUSEMOTION) {
-		// 			int x, y;
-		// 			float xpos, ypos;
-		// 			SDL_GetGlobalMouseState(&x, &y);
-		// 			xpos = (float)x;
-		// 			ypos = (float)y;	
-
-		// 			if(cam->firstMouse) {
-		// 				cam->lastX = xpos;
-		// 				cam->lastY = ypos;
-		// 				cam->firstMouse = false;
-		// 			}
-
-		// 			float xoffset = xpos - cam->lastX;
-		// 			float yoffset = cam->lastY - ypos; // reversed since y-coordinates go from bottom to top
-		// 			cam->lastX = xpos;
-		// 			cam->lastY = ypos;
-
-		// 			    float sensitivity = 0.1f; // change this value to your liking
-		// 				xoffset *= sensitivity;
-		// 				yoffset *= sensitivity;
-
-		// 				cam->yaw += xoffset;
-		// 				cam->pitch += yoffset;
-
-		// 				// make sure that when pitch is out of bounds, screen doesn't get flipped
-		// 				if (cam->pitch > 89.0f)
-		// 					cam->pitch = 89.0f;
-		// 				if (cam->pitch < -89.0f)
-		// 					cam->pitch = -89.0f;
-
-		// 				glm::vec3 front;
-		// 				front.x = cos(glm::radians(cam->yaw)) * cos(glm::radians(cam->pitch));
-		// 				front.y = sin(glm::radians(cam->pitch));
-		// 				front.z = sin(glm::radians(cam->yaw)) * cos(glm::radians(cam->pitch));
-		// 				cam->cameraFront = glm::normalize(front);
-		// 		}
-		// 		else if(e.type == SDL_MOUSEWHEEL) {
-		// 			cam->fov -= (float)e.wheel.y;
-		// 			if (cam->fov < 1.0f)
-		// 				cam->fov = 1.0f;
-		// 			if (cam->fov > 45.0f)
-		// 				cam->fov = 45.0f;
-		// 		}
-		// 	}
-		// 	glCheckError();
-		// }
