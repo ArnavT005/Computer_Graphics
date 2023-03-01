@@ -1,6 +1,9 @@
 #include "mesh.hpp"
 
 #include <iostream>
+#include<string>
+#include<sstream>
+#include<fstream>
 #include <map>
 #include <set>
 
@@ -176,7 +179,17 @@ namespace COL781 {
             }
             for (int i = 0; i < mVertices.size(); i ++) {
                 std::vector<int> adjacentFacesIds = getAdjacentFaces(Entity::VERTEX, i);
-                // insert code for computing vertex normals from adjacent faces
+                // compute vertex normal from adjacent faces
+                glm::vec3 normal = glm::vec3(0);
+                for (int j = 0; j < adjacentFacesIds.size(); j ++) {
+                    normal += mFaces[adjacentFacesIds[j]].normal;
+                }
+                normal = normalize(normal);
+                mVertices[i].normal = normal;
+                // set vertex normal for adjacent faces
+                for (int j = 0; j < adjacentFacesIds.size(); j ++) {
+                    mFaces[adjacentFacesIds[j]].normal = normal;
+                }
             }
             return true;
         }
@@ -517,6 +530,65 @@ namespace COL781 {
                 mFaces[i].normal = normalize(crossProduct(a, b));
             }
             return true;
+        }
+
+        void Mesh::load(std::string filename){
+            //parse the file
+            std::fstream file;
+            file.open("cube.obj");
+            if(!file.is_open()){
+                std::cout << "Error opening file" << std::endl;
+                return;
+            }
+            std::string line;
+            std::vector<glm::vec3> vertices;
+            std::vector<glm::vec3> normals;
+            std::vector<glm::ivec3> faces;
+            while(getline(file, line)){
+                if(line[0] == 'v' && line[1] == ' '){
+                    glm::vec3 vertex;
+                    sscanf(line.c_str(), "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+                    vertices.push_back(vertex);
+                }
+                else if(line[0] == 'v' && line[1] == 'n'){
+                    glm::vec3 normal;
+                    sscanf(line.c_str(), "vn %f %f %f", &normal.x, &normal.y, &normal.z);
+                    normals.push_back(normal);
+                }
+                else if(line[0] == 'f'){
+                    glm::ivec3 face;
+                    sscanf(line.c_str(), "f %d//%d %d//%d %d//%d", &face.x, &face.x, &face.y, &face.y, &face.z, &face.z);
+                    faces.push_back(face);
+                }
+            }
+            file.close();
+            // print vertices array
+            std::cout << "Vertices: " << std::endl;
+            for(int i = 0; i < vertices.size(); i++){
+                std::cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
+            }
+
+            glm::vec3* verticesArray = new glm::vec3[vertices.size()];
+            glm::vec3* normalsArray = new glm::vec3[normals.size()];
+            glm::ivec3* facesArray = new glm::ivec3[faces.size()];
+            for(int i = 0; i < vertices.size(); i++){
+                verticesArray[i] = vertices[i];
+            }
+            if(normals.size() > 0){
+                for(int i = 0; i < normals.size(); i++){
+                    normalsArray[i] = normals[i];
+                }
+            }
+            else{
+                normalsArray = nullptr;
+            }
+            for(int i = 0; i < faces.size(); i++){
+                facesArray[i] = faces[i];
+            }
+            setVertices(vertices.size(), verticesArray, normalsArray);
+            setFaces(faces.size(), facesArray);
+            connect();
+            computeAndSetVertexNormals();
         }
 
     }

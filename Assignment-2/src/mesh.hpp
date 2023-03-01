@@ -2,6 +2,7 @@
 #define MESH_HPP
 
 #include <vector>
+#include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include "viewer.hpp"
@@ -96,6 +97,7 @@ namespace COL781 {
                 void createSquareMesh(int, int, float = 0.5);
                 void createSphereMesh(int, int, float = 0.5);
                 bool smooth(int, float, float = 0);
+                void load(std::string);
 
                 friend struct HalfEdge;
                 friend struct Vertex;
