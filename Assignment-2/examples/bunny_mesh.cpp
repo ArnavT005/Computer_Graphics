@@ -12,7 +12,7 @@ int main() {
 	if (!v.initialize("Square Mesh", 640, 480)) {
 		return EXIT_FAILURE;
 	}
-    m.createSquareMesh(5, 5);
+    m.load("../meshes/bunny-1k.obj");
     m.send(v);
 	v.view();
 }

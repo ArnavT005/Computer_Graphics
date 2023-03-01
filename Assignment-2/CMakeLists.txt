@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(a1)
+project(a2)
 set(CMAKE_CXX_STANDARD 11)
 
 find_package(GLEW REQUIRED)
@@ -19,3 +19,6 @@ target_link_libraries(square_mesh viewer)
 
 add_executable(sphere_mesh examples/sphere_mesh.cpp)
 target_link_libraries(sphere_mesh viewer)
+
+add_executable(bunny_mesh examples/bunny_mesh.cpp)
+target_link_libraries(bunny_mesh viewer)
