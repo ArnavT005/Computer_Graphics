@@ -535,7 +535,7 @@ namespace COL781 {
         void Mesh::load(std::string filename){
             //parse the file
             std::fstream file;
-            file.open("cube.obj");
+            file.open(filename);
             if(!file.is_open()){
                 std::cout << "Error opening file" << std::endl;
                 return;
@@ -558,6 +558,9 @@ namespace COL781 {
                 else if(line[0] == 'f'){
                     glm::ivec3 face;
                     sscanf(line.c_str(), "f %d//%d %d//%d %d//%d", &face.x, &face.x, &face.y, &face.y, &face.z, &face.z);
+                    face[0] = face[0] - 1;
+                    face[1] = face[1] - 1;
+                    face[2] = face[2] - 1;
                     faces.push_back(face);
                 }
             }
@@ -567,6 +570,17 @@ namespace COL781 {
             for(int i = 0; i < vertices.size(); i++){
                 std::cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
             }
+            // print normals array
+            std::cout << "Normals: " << std::endl;
+            for(int i = 0; i < normals.size(); i++){
+                std::cout << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
+            }
+            // print faces array
+            std::cout << "Faces: " << std::endl;
+            for(int i = 0; i < faces.size(); i++){
+                std::cout << faces[i].x << " " << faces[i].y << " " << faces[i].z << std::endl;
+            }
+
 
             glm::vec3* verticesArray = new glm::vec3[vertices.size()];
             glm::vec3* normalsArray = new glm::vec3[normals.size()];
@@ -588,7 +602,7 @@ namespace COL781 {
             setVertices(vertices.size(), verticesArray, normalsArray);
             setFaces(faces.size(), facesArray);
             connect();
-            computeAndSetVertexNormals();
+            // computeAndSetVertexNormals();
         }
 
     }
