@@ -22,3 +22,9 @@ target_link_libraries(sphere_mesh viewer)
 
 add_executable(bunny_mesh examples/bunny_mesh.cpp)
 target_link_libraries(bunny_mesh viewer)
+
+add_executable(cube_mesh examples/cube_mesh.cpp)
+target_link_libraries(cube_mesh viewer)
+
+add_executable(teapot_mesh examples/teapot_mesh.cpp)
+target_link_libraries(teapot_mesh viewer)
