@@ -96,7 +96,7 @@ namespace COL781 {
                 void destroy();
                 void createSquareMesh(int, int, float = 0.5);
                 void createSphereMesh(int, int, float = 0.5);
-                bool smooth(int, float, float = 0);
+                bool smooth(int, float, bool = false, float = 0);
                 void load(std::string);
 
                 friend struct HalfEdge;

@@ -487,7 +487,7 @@ namespace COL781 {
             connect();
         }
 
-        bool Mesh::smooth(int numIter, float lambda, float mu) {
+        bool Mesh::smooth(int numIter, float lambda, bool taubin, float mu) {
             if (!isConnected) {
                 std::cout << "Cannot smooth mesh. Mesh is not connected!" << std::endl;
                 return false;
@@ -503,12 +503,12 @@ namespace COL781 {
                     for (int id : adjacentVertices[j]) {
                         sum += mVertices[id].position - mVertices[j].position;
                     }
-                    displacement[j] = sum / (float) adjacentVertices.size();
+                    displacement[j] = sum / (float) adjacentVertices[j].size();
                 }
                 for (int j = 0; j < mVertices.size(); j ++) {
                     mVertices[j].position += lambda * displacement[j];
                 }
-                if (mu == 0) {
+                if (!taubin) {
                     continue;
                 }
                 for (int j = 0; j < mVertices.size(); j ++) {
@@ -516,7 +516,7 @@ namespace COL781 {
                     for (int id : adjacentVertices[j]) {
                         sum += mVertices[id].position - mVertices[j].position;
                     }
-                    displacement[j] = sum / (float) adjacentVertices.size();
+                    displacement[j] = sum / (float) adjacentVertices[j].size();
                 }
                 for (int j = 0; j < mVertices.size(); j ++) {
                     mVertices[j].position += mu * displacement[j];
@@ -540,7 +540,9 @@ namespace COL781 {
             }
             std::string line;
             std::vector<glm::vec3> vertices, normals;
-            std::vector<glm::ivec3> faces;
+            std::map<int, int> v_idx_to_obj_v_idx, n_idx_to_obj_n_idx;
+            std::vector<glm::vec3> objectVertices, objectNormals;
+            std::vector<glm::ivec3> objectFaces;
             while(getline(file, line)){
                 if(line[0] == 'v' && line[1] == ' '){
                     glm::vec3 vertex;
@@ -550,19 +552,38 @@ namespace COL781 {
                 else if(line[0] == 'v' && line[1] == 'n'){
                     glm::vec3 normal;
                     sscanf(line.c_str(), "vn %f %f %f", &normal.x, &normal.y, &normal.z);
-                    normals.push_back(normal);
+                    normals.push_back(normalize(normal));
                 }
                 else if(line[0] == 'f'){
-                    int a, b, c;
-                    sscanf(line.c_str(), "f %d//%d %d//%d %d//%d", &a, &a, &b, &b, &c, &c);
-                    faces.push_back(glm::ivec3(a - 1, b - 1, c - 1));
+                    int v_idx[3], t_idx[3], n_idx[3] = {-1, -1, -1};
+                    glm::ivec3 face;
+                    if (sscanf(line.c_str(), "f %d %d %d", &v_idx[0], &v_idx[1], &v_idx[2]) == 3);
+                    else if (sscanf(line.c_str(), "f %d/%d %d/%d %d/%d", &v_idx[0], &t_idx[0], &v_idx[1], &t_idx[1], &v_idx[2], &t_idx[2]) == 6);
+                    else if (sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d", &v_idx[0], &t_idx[0], &n_idx[0], &v_idx[1], &t_idx[1], &n_idx[1], &v_idx[2], &t_idx[2], &n_idx[2]) == 9);
+                    else sscanf(line.c_str(), "f %d//%d %d//%d %d//%d", &v_idx[0], &n_idx[0], &v_idx[1], &n_idx[1], &v_idx[2], &n_idx[2]);
+                    for (int i = 0; i < 3; i ++) {
+                        if (v_idx_to_obj_v_idx.find(v_idx[i]) == v_idx_to_obj_v_idx.end()) {
+                            v_idx_to_obj_v_idx.insert({v_idx[i], objectVertices.size()});
+                            objectVertices.push_back(vertices[v_idx[i] - 1]);
+                        }
+                        v_idx[i] = v_idx_to_obj_v_idx[v_idx[i]];
+                        if (n_idx[i] == -1) {
+                            continue;
+                        }
+                        if (n_idx_to_obj_n_idx.find(n_idx[i]) == n_idx_to_obj_n_idx.end()) {
+                            n_idx_to_obj_n_idx.insert({n_idx[i], objectNormals.size()});
+                            objectNormals.push_back(normals[n_idx[i] - 1]);
+                        }
+                    }
+                    face = glm::ivec3(v_idx[0], v_idx[1], v_idx[2]);
+                    objectFaces.push_back(face);
                 }
             }
             file.close();
-            setVertices(vertices.size(), vertices.data(), normals.data());
-            setFaces(faces.size(), faces.data());
+            setVertices(objectVertices.size(), objectVertices.data(), objectNormals.data());
+            setFaces(objectFaces.size(), objectFaces.data());
             connect();
-            if (normals.size() == 0) {
+            if (objectNormals.size() == 0) {
                 computeAndSetVertexNormals();
             }
         }
