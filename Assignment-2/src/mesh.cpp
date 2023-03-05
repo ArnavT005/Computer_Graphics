@@ -487,13 +487,13 @@ namespace COL781 {
             connect();
         }
 
-        void Mesh::load(std::string filename){
+        bool Mesh::load(std::string filename){
             destroy();
             std::fstream file;
             file.open(filename);
             if(!file.is_open()){
                 std::cout << "Cannot load mesh. Error in opening file!" << std::endl;
-                return;
+                return false;
             }
             std::string line;
             std::vector<glm::vec3> vertices, normals;
@@ -543,6 +543,7 @@ namespace COL781 {
             if (objectNormals.size() == 0) {
                 computeAndSetVertexNormals();
             }
+            return true;
         }
 
         bool Mesh::smooth(int numIter, float lambda, bool taubin, float mu) {
