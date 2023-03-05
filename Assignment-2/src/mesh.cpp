@@ -487,49 +487,6 @@ namespace COL781 {
             connect();
         }
 
-        bool Mesh::smooth(int numIter, float lambda, bool taubin, float mu) {
-            if (!isConnected) {
-                std::cout << "Cannot smooth mesh. Mesh is not connected!" << std::endl;
-                return false;
-            }
-            std::vector<glm::vec3> displacement(mVertices.size());
-            std::vector<std::vector<int>> adjacentVertices(mVertices.size());
-            for (int i = 0; i < mVertices.size(); i ++) {
-                adjacentVertices[i] = getAdjacentVertices(Entity::VERTEX, i);
-            }
-            for (int i = 0; i < numIter; i ++) {
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    glm::vec3 sum(0);
-                    for (int id : adjacentVertices[j]) {
-                        sum += mVertices[id].position - mVertices[j].position;
-                    }
-                    displacement[j] = sum / (float) adjacentVertices[j].size();
-                }
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    mVertices[j].position += lambda * displacement[j];
-                }
-                if (!taubin) {
-                    continue;
-                }
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    glm::vec3 sum(0);
-                    for (int id : adjacentVertices[j]) {
-                        sum += mVertices[id].position - mVertices[j].position;
-                    }
-                    displacement[j] = sum / (float) adjacentVertices[j].size();
-                }
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    mVertices[j].position += mu * displacement[j];
-                }
-            }
-            for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
-                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
-                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
-                mFaces[i].normal = normalize(crossProduct(a, b));
-            }
-            return true;
-        }
-
         void Mesh::load(std::string filename){
             destroy();
             std::fstream file;
@@ -586,6 +543,49 @@ namespace COL781 {
             if (objectNormals.size() == 0) {
                 computeAndSetVertexNormals();
             }
+        }
+
+        bool Mesh::smooth(int numIter, float lambda, bool taubin, float mu) {
+            if (!isConnected) {
+                std::cout << "Cannot smooth mesh. Mesh is not connected!" << std::endl;
+                return false;
+            }
+            std::vector<glm::vec3> displacement(mVertices.size());
+            std::vector<std::vector<int>> adjacentVertices(mVertices.size());
+            for (int i = 0; i < mVertices.size(); i ++) {
+                adjacentVertices[i] = getAdjacentVertices(Entity::VERTEX, i);
+            }
+            for (int i = 0; i < numIter; i ++) {
+                for (int j = 0; j < mVertices.size(); j ++) {
+                    glm::vec3 sum(0);
+                    for (int id : adjacentVertices[j]) {
+                        sum += mVertices[id].position - mVertices[j].position;
+                    }
+                    displacement[j] = sum / (float) adjacentVertices[j].size();
+                }
+                for (int j = 0; j < mVertices.size(); j ++) {
+                    mVertices[j].position += lambda * displacement[j];
+                }
+                if (!taubin) {
+                    continue;
+                }
+                for (int j = 0; j < mVertices.size(); j ++) {
+                    glm::vec3 sum(0);
+                    for (int id : adjacentVertices[j]) {
+                        sum += mVertices[id].position - mVertices[j].position;
+                    }
+                    displacement[j] = sum / (float) adjacentVertices[j].size();
+                }
+                for (int j = 0; j < mVertices.size(); j ++) {
+                    mVertices[j].position += mu * displacement[j];
+                }
+            }
+            for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
+                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
+                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
+                mFaces[i].normal = normalize(crossProduct(a, b));
+            }
+            return true;
         }
 
     }
