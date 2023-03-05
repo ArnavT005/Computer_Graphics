@@ -75,6 +75,7 @@ namespace COL781 {
                 bool isConnected;
                 glm::vec3 normalize(glm::vec3);
                 glm::vec3 crossProduct(glm::vec3, glm::vec3);
+                std::vector<int> match(glm::ivec3, std::vector<int>);
 
             public:
                 Mesh();
@@ -98,6 +99,7 @@ namespace COL781 {
                 void createSphereMesh(int, int, float = 0.5);
                 bool load(std::string);
                 bool smooth(int, float, bool = false, float = 0);
+                bool subdivide();
 
                 friend struct HalfEdge;
                 friend struct Vertex;

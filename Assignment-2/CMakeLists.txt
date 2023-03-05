@@ -31,3 +31,6 @@ target_link_libraries(teapot_mesh viewer)
 
 add_executable(noisy_cube_mesh examples/noisy_cube_mesh.cpp)
 target_link_libraries(noisy_cube_mesh viewer)
+
+add_executable(bunny_subdivide examples/bunny_subdivide.cpp)
+target_link_libraries(bunny_subdivide viewer)

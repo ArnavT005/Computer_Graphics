@@ -114,6 +114,22 @@ namespace COL781 {
             return glm::vec3(x, y, z);
         }
 
+        std::vector<int> Mesh::match(glm::ivec3 indices, std::vector<int> edges) {
+            assert(edges.size() == 3);
+            std::vector<int> ind = {indices[0], indices[1], indices[2], indices[0]};
+            std::vector<int> matchedEdges;
+            for (int i = 0; i < 3; i ++) {
+                for (int j = 0; j < 3; j ++) {
+                    std::vector<int> v = getAdjacentVertices(Entity::EDGE, edges[j]);
+                    if (std::min(v[0], v[1]) == std::min(ind[i], ind[i + 1]) && std::max(v[0], v[1]) == std::max(ind[i], ind[i + 1])) {
+                        matchedEdges.push_back(edges[j]);
+                        break;
+                    }
+                }
+            }
+            return matchedEdges;
+        }
+
         Mesh::Mesh() {
             mHalfEdges.clear();
             mVertices.clear();
@@ -586,6 +602,72 @@ namespace COL781 {
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = normalize(crossProduct(a, b));
             }
+            return true;
+        }
+
+        bool Mesh::subdivide() {
+            if (!isConnected) {
+                std::cout << "Cannot subdivide mesh. Mesh is not connected!" << std::endl;
+                return false;
+            }
+            int numVertices = mVertices.size(), numEdges = mEdges.size(), numFaces = mFaces.size() - mVirtualFaces.size();
+            std::vector<glm::vec3> oddVertices(numEdges, glm::vec3(0)), evenVertices(numVertices, glm::vec3(0));
+            for (int i = 0; i < numEdges; i ++) {
+                std::vector<int> adj_v = getAdjacentVertices(Entity::EDGE, i);
+                if (mEdges[i].isBoundary) {
+                    oddVertices[i] = (mVertices[adj_v[0]].position + mVertices[adj_v[1]].position) / 2.0f;
+                } else {
+                    std::vector<int> adj_f = getAdjacentFaces(Entity::EDGE, i);
+                    std::vector<int> adj_f_v[2] = {getAdjacentVertices(Entity::FACE, adj_f[0]), getAdjacentVertices(Entity::FACE, adj_f[1])};
+                    int opp_v[2], j = 0;
+                    for (std::vector<int> f_v : adj_f_v) {
+                        for (int v : f_v) {
+                            if (v != adj_v[0] && v != adj_v[1]) {
+                                opp_v[j ++] = v;
+                            }
+                        }
+                    }
+                    oddVertices[i] = (3.0f * mVertices[adj_v[0]].position + 3.0f * mVertices[adj_v[1]].position + mVertices[opp_v[0]].position + mVertices[opp_v[1]].position) / 8.0f;
+                }                
+            }
+            for (int i = 0; i < numVertices; i ++) {
+                std::vector<int> adj_v = getAdjacentVertices(Entity::VERTEX, i);
+                int n = adj_v.size();
+                glm::vec3 sum_adj_v = glm::vec3(0);
+                for (int v : adj_v) {
+                    sum_adj_v += mVertices[v].position;
+                }
+                float weight = 0.0f;
+                if (mVertices[i].isBoundary) {
+                    weight = 1.0f / 8.0f;
+                } else {
+                    if (n == 3) {
+                        weight = 3.0f / 16.0f;
+                    } else {
+                        weight = 3.0f / (8.0f * n);
+                    }
+                }
+                evenVertices[i] = (1 - n * weight) * mVertices[i].position + weight * sum_adj_v;
+            }
+            std::vector<glm::vec3> new_vertices(numVertices + numEdges, glm::vec3(0));
+            for (int i = 0; i < numVertices + numEdges; i ++) {
+                new_vertices[i] = (i < numVertices) ? evenVertices[i] : oddVertices[i - numVertices];
+            }
+            std::vector<glm::ivec3> new_faces(4 * numFaces, glm::ivec3(0));
+            for (int i = 0; i < numFaces; i ++) {
+                glm::ivec3 indices = mFaces[i].indices;
+                std::vector<int> adj_e = getAdjacentEdges(Entity::FACE, i);
+                adj_e = match(indices, adj_e);
+                new_faces[4 * i] = glm::ivec3(indices[0], numVertices + adj_e[0], numVertices + adj_e[2]);
+                new_faces[4 * i + 1] = glm::ivec3(numVertices + adj_e[0], indices[1], numVertices + adj_e[1]);
+                new_faces[4 * i + 2] = glm::ivec3(numVertices + adj_e[1], indices[2], numVertices + adj_e[2]);
+                new_faces[4 * i + 3] = numVertices + glm::ivec3(adj_e[2], adj_e[0], adj_e[1]);
+            }
+            destroy();
+            setVertices(new_vertices.size(), new_vertices.data());
+            setFaces(new_faces.size(), new_faces.data());
+            connect();
+            computeAndSetVertexNormals();
             return true;
         }
 
