@@ -102,9 +102,12 @@ namespace COL781 {
             return faces;
         }
         
+        float Mesh::norm(glm::vec3 a) {
+            return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+        }
+
         glm::vec3 Mesh::normalize(glm::vec3 a) {
-            float norm = sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
-            return a / norm;
+            return a / norm(a);
         }
 
         glm::vec3 Mesh::crossProduct(glm::vec3 a, glm::vec3 b) {
@@ -112,6 +115,20 @@ namespace COL781 {
             float y = a.z * b.x - a.x * b.z;
             float z = a.x * b.y - a.y * b.x;
             return glm::vec3(x, y, z);
+        }
+
+        float Mesh::sin(glm::vec3 a, glm::vec3 b) {
+            return norm(crossProduct(a, b)) / (norm(a) * norm(b));
+        }
+
+        int Mesh::find(int x, glm::ivec3 indices) {
+            if (indices[0] == x) {
+                return 0;
+            } else if (indices[1] == x) {
+                return 1;
+            } else {
+                return 2;
+            }
         }
 
         std::vector<int> Mesh::match(glm::ivec3 indices, std::vector<int> edges) {
@@ -193,17 +210,15 @@ namespace COL781 {
             }
             for (int i = 0; i < mVertices.size(); i ++) {
                 std::vector<int> adjacentFacesIds = getAdjacentFaces(Entity::VERTEX, i);
-                // compute vertex normal from adjacent faces
                 glm::vec3 normal = glm::vec3(0);
                 for (int j = 0; j < adjacentFacesIds.size(); j ++) {
-                    normal += mFaces[adjacentFacesIds[j]].normal;
+                    int index = find(i, mFaces[adjacentFacesIds[j]].indices);
+                    glm::vec3 a = mVertices[mFaces[adjacentFacesIds[j]].indices[(index + 1) % 3]].position - mVertices[mFaces[adjacentFacesIds[j]].indices[index]].position;
+                    glm::vec3 b = mVertices[mFaces[adjacentFacesIds[j]].indices[(index + 2) % 3]].position - mVertices[mFaces[adjacentFacesIds[j]].indices[index]].position;
+                    normal += mFaces[adjacentFacesIds[j]].normal * sin(a, b) / (norm(a) * norm(b));
                 }
                 normal = normalize(normal);
                 mVertices[i].normal = normal;
-                // set vertex normal for adjacent faces
-                for (int j = 0; j < adjacentFacesIds.size(); j ++) {
-                    mFaces[adjacentFacesIds[j]].normal = normal;
-                }
             }
             return true;
         }

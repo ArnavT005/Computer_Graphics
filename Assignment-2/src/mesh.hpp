@@ -73,8 +73,11 @@ namespace COL781 {
                 std::vector<Face> mFaces;
                 std::vector<int> mVirtualFaces;
                 bool isConnected;
+                float norm(glm::vec3);
                 glm::vec3 normalize(glm::vec3);
                 glm::vec3 crossProduct(glm::vec3, glm::vec3);
+                float sin(glm::vec3, glm::vec3);
+                int find(int, glm::ivec3);
                 std::vector<int> match(glm::ivec3, std::vector<int>);
 
             public:
