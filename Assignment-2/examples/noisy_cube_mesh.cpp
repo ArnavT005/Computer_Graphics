@@ -13,7 +13,7 @@ int main() {
 		return EXIT_FAILURE;
 	}
     m.load("../meshes/noisycube.obj");
-    m.smooth(200, 0.33, true, -0.34);
+    m.smooth(100, 0.33, true, -0.34);
     m.send(v);
 	v.view();
 }

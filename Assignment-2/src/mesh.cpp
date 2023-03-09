@@ -617,6 +617,7 @@ namespace COL781 {
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = normalize(crossProduct(a, b));
             }
+            computeAndSetVertexNormals();
             return true;
         }
 
