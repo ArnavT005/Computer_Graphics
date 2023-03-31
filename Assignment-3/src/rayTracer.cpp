@@ -110,12 +110,10 @@ void RayTracer::traceRays() {
                     glm::vec3 intersectionNormal = glm::vec3(0.0f);
                     bool hit = false;
                     for (Shape *s : mObjects) {
-                        if (s->intersectRay(origin, direction, 0.5f, 150.0f)) {
-                            if (s->getTValue() < minTValue) {
-                                minTValue = s->getTValue();
-                                intersectionPoint = s->getIntersectionPoint();
-                                intersectionNormal = s->getIntersectionNormal();
-                            }
+                        if (s->intersectRay(origin, direction, mImagePlane, minTValue)) {
+                            minTValue = s->getTValue();
+                            intersectionPoint = s->getIntersectionPoint();
+                            intersectionNormal = s->getIntersectionNormal();
                             hit = true;
                         }
                     }
