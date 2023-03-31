@@ -97,13 +97,15 @@ bool RayTracer::shouldQuit() {
 }
 
 void RayTracer::traceRays() {
+    float pixelSize = 2 * mImagePlane * glm::tan(glm::radians(mVerticalFOV / 2)) / mFrameHeight;
     for (int i = 0; i < mFrameHeight; i ++) {
         for (int j = 0; j < mFrameWidth; j ++) {
+            glm::vec3 point = glm::vec3(pixelSize * (2 * j - mFrameWidth + 1 / mSampleSide) / 2, pixelSize * (mFrameHeight - 2 * i - 1 / mSampleSide) / 2, -1.0f);
             for (int x = 0; x < mSampleSide; x ++) {
                 for (int y = 0; y < mSampleSide; y ++) {
                     glm::vec3 origin = glm::vec3(0.0f);
-                    glm::vec3 direction = glm::vec3(-6 + j + 0.5, 4 - i - 0.5, -1.0f);
-                    float minTValue = 151.0f;
+                    glm::vec3 direction = point + glm::vec3(x * pixelSize / mSampleSide, y * pixelSize / mSampleSide, 0.0f);
+                    float minTValue = std::numeric_limits<float>::infinity();
                     glm::vec3 intersectionPoint = glm::vec3(0.0f);
                     glm::vec3 intersectionNormal = glm::vec3(0.0f);
                     bool hit = false;
