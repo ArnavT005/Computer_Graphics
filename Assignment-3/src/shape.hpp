@@ -7,6 +7,8 @@
 class Shape {
     public:
         virtual bool intersectRay(glm::vec3, glm::vec3, float, float) = 0;
+        virtual glm::vec3 getAlbedo() = 0;
+        virtual glm::mat4 getTransform() = 0;
         virtual float getTValue() = 0;
         virtual glm::vec3 getIntersectionPoint() = 0;
         virtual glm::vec3 getIntersectionNormal() = 0;
