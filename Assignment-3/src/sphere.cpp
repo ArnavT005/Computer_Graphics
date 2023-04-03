@@ -2,26 +2,14 @@
 
 #include <iostream>
 
-Sphere::Sphere() {
-    mAlbedo = glm::vec3(1.0f);
-    mCenter = glm::vec3(0.0f);
-    mRadius = 1.0f;
-    mTransform = glm::mat4(1.0f);
-    mIntersectionPoint = glm::vec3(-1.0f);
-}
-
-Sphere::Sphere(glm::vec3 center, float radius, glm::vec3 albedo) {
-    mAlbedo = albedo;
-    mCenter = center;
-    mRadius = radius;
-    mTransform = glm::mat4(1.0f);
-    mIntersectionPoint = glm::vec3(-1.0f);
-}
+Sphere::Sphere() {}
 
 bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
-    float a = glm::dot(direction, direction);
-    float b = 2 * glm::dot(origin - mCenter, direction);
-    float c = glm::dot(origin - mCenter, origin - mCenter) - mRadius * mRadius;
+    glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
+    glm::vec3 transformedDirection(mRayTransform * glm::vec4(direction, 0.0f));
+    float a = glm::dot(transformedDirection, transformedDirection);
+    float b = 2 * glm::dot(transformedOrigin - mCenter, transformedDirection);
+    float c = glm::dot(transformedOrigin - mCenter, transformedOrigin - mCenter) - mRadius * mRadius;
     if (b * b - 4 * a * c < 0) {
         return false;
     }
@@ -32,6 +20,7 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
         if (tMin <= root[1] && root[1] <= tMax) {
             mTValue = root[1];
             mIntersectionPoint = origin + mTValue * direction;
+            mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f));
             return true;
         }
         return false;
@@ -41,11 +30,8 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
     }
     mTValue = root[0];
     mIntersectionPoint = origin + mTValue * direction;
+    mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f));
     return true;
-}
-
-void Sphere::setAlbedo(glm::vec3 albedo) {
-    mAlbedo = albedo;
 }
 
 void Sphere::setCenter(glm::vec3 center) {
@@ -54,28 +40,4 @@ void Sphere::setCenter(glm::vec3 center) {
 
 void Sphere::setRadius(float radius) {
     mRadius = radius;
-}
-
-void Sphere::setTransform(glm::mat4 transform) {
-    mTransform = transform;
-}
-
-glm::vec3 Sphere::getAlbedo() {
-    return mAlbedo;
-}
-
-glm::mat4 Sphere::getTransform() {
-    return mTransform;
-}
-
-float Sphere::getTValue() {
-    return mTValue;
-}
-
-glm::vec3 Sphere::getIntersectionPoint() {
-    return mIntersectionPoint;
-}
-
-glm::vec3 Sphere::getIntersectionNormal() {
-    return glm::normalize(mIntersectionPoint - mCenter);
 }

@@ -1,37 +1,23 @@
 #include "plane.hpp"
 
-Plane::Plane() {
-    mAlbedo = glm::vec3(1.0f);
-    mPoint = glm::vec3(0.0f);
-    mNormal = glm::vec3(0.0f, 0.0f, 1.0f);
-    mTransform = glm::mat4(1.0f);
-    mIntersectionPoint = glm::vec3(-1.0f);
-}
-
-Plane::Plane(glm::vec3 point, glm::vec3 normal, glm::vec3 albedo) {
-    mAlbedo = albedo;
-    mPoint = point;
-    mNormal = glm::normalize(normal);
-    mTransform = glm::mat4(1.0f);
-    mIntersectionPoint = glm::vec3(-1.0f);
-}
+Plane::Plane() {}
 
 bool Plane::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
-    if (glm::dot(direction, mNormal) != 0) {
-        mTValue = glm::dot(mNormal, mPoint - origin) / glm::dot(mNormal, direction);
+    glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
+    glm::vec3 transformedDirection(mRayTransform * glm::vec4(direction, 0.0f));
+    if (glm::dot(transformedDirection, mNormal) != 0) {
+        mTValue = glm::dot(mNormal, mPoint - transformedOrigin) / glm::dot(mNormal, transformedDirection);
         mIntersectionPoint = origin + mTValue * direction;
+        mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(mNormal, 0.0f));
         return (tMin <= mTValue && mTValue <= tMax);
     }
-    if (glm::dot(mNormal, origin - mPoint) == 0) {
+    if (glm::dot(mNormal, transformedOrigin - mPoint) == 0) {
         mTValue = glm::max(tMin, 0.0f);
         mIntersectionPoint = origin + mTValue * direction;
+        mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(mNormal, 0.0f));
         return true;
     }
     return false;
-}
-
-void Plane::setAlbedo(glm::vec3 albedo) {
-    mAlbedo = albedo;
 }
 
 void Plane::setPoint(glm::vec3 point) {
@@ -40,28 +26,4 @@ void Plane::setPoint(glm::vec3 point) {
 
 void Plane::setNormal(glm::vec3 normal) {
     mNormal = glm::normalize(normal);
-}
-
-void Plane::setTransform(glm::mat4 transform) {
-    mTransform = transform;
-}
-
-glm::vec3 Plane::getAlbedo() {
-    return mAlbedo;
-}
-
-glm::mat4 Plane::getTransform() {
-    return mTransform;
-}
-
-float Plane::getTValue() {
-    return mTValue;
-}
-
-glm::vec3 Plane::getIntersectionPoint() {
-    return mIntersectionPoint;
-}
-
-glm::vec3 Plane::getIntersectionNormal() {
-    return mNormal;
 }

@@ -82,10 +82,15 @@ void RayTracer::calibrateCamera(float verticalFOV, float imagePlane, glm::vec3 c
     e[0] = glm::normalize(glm::cross(mViewingDirection, mUpVector));
     e[1] = glm::normalize(glm::cross(e[0], mViewingDirection));
     e[2] = glm::normalize(-mViewingDirection);
-    mWorldToCamera[0] = glm::vec4(e[0], 0.0f);
-    mWorldToCamera[1] = glm::vec4(e[1], 0.0f);
-    mWorldToCamera[2] = glm::vec4(e[2], 0.0f);
-    mWorldToCamera[3] = glm::vec4(mCameraCenter, 1.0f);
+    glm::mat4 cameraToWorld;
+    cameraToWorld[0] = glm::vec4(e[0], 0.0f);
+    cameraToWorld[1] = glm::vec4(e[1], 0.0f);
+    cameraToWorld[2] = glm::vec4(e[2], 0.0f);
+    cameraToWorld[3] = glm::vec4(mCameraCenter, 1.0f);
+    mWorldToCamera = glm::inverse(cameraToWorld);
+    for (Shape *s : mObjects) {
+        s->setWorldToCamera(mWorldToCamera);
+    }
 }
 
 void RayTracer::addObject(Shape *object) {

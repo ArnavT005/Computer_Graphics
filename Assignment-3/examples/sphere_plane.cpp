@@ -9,7 +9,6 @@ int main() {
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
-    r.calibrateCamera(90.0f, 1.0f, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     Sphere s;
     s.setCenter(glm::vec3(0.0f, 0.0f, -2.0f));
     s.setRadius(1.0f);
@@ -18,6 +17,7 @@ int main() {
     p.setNormal(glm::vec3(0.0f, 1.0f, 0.0f));
     r.addObject(&s);
     r.addObject(&p);
+    r.calibrateCamera(90.0f, 1.0f, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     while (!r.shouldQuit()) {
         r.clearBuffer(glm::vec4(1.0f));
         r.traceRays();
