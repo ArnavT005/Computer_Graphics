@@ -193,9 +193,9 @@ void RayTracer::traceRays() {
                             mCBuffer[i][j][x][y] = glm::vec4(glm::vec3(0.0f), 1.0f);
                         }
                     } else if (mMode == RenderingMode::RAY_TRACING) {
-
+                        // add code for ray tracing metallic/transparent materials
                     } else {
-
+                        // add code for path tracing diffuse/metallic/transparent materials
                     }
                 }
             }
