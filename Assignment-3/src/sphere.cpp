@@ -27,7 +27,7 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
         if (tMin <= root[1] && root[1] <= tMax) {
             mTValue = root[1];
             mIntersectionPoint = origin + mTValue * direction;
-            mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f));
+            mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f)));
             return true;
         }
         return false;
@@ -37,7 +37,7 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
     }
     mTValue = root[0];
     mIntersectionPoint = origin + mTValue * direction;
-    mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f));
+    mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f)));
     return true;
 }
 

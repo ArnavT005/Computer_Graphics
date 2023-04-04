@@ -152,10 +152,10 @@ void RayTracer::traceRays() {
                                 glm::vec3 irradiance(0.0f);
                                 for (PointSource *pointSource : mPointSources) {
                                     glm::vec3 shadowOrigin = intersectionPoint;
-                                    glm::vec3 shadowDirection = glm::normalize(pointSource->getCameraCoordinate() - shadowOrigin);
+                                    glm::vec3 shadowDirection = pointSource->getCameraCoordinate() - shadowOrigin;
                                     hit = false;
                                     for (Object *obj : mObjects) {
-                                        if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, std::numeric_limits<float>::infinity())) {
+                                        if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, 1)) {
                                             hit = true;
                                             break;
                                         }
@@ -165,7 +165,7 @@ void RayTracer::traceRays() {
                                     }
                                     irradiance += pointSource->getIrradiance(intersectionPoint, intersectionNormal);
                                 }
-                                mCBuffer[i][j][x][y] = glm::vec4((albedo * irradiance) / glm::pi<float>(), 1.0f);
+                                mCBuffer[i][j][x][y] = glm::min(glm::vec4((albedo * irradiance) / glm::pi<float>(), 1.0f), glm::vec4(1.0f));
                             }
                         } else {
                             mCBuffer[i][j][x][y] = glm::vec4(glm::vec3(0.0f), 1.0f);

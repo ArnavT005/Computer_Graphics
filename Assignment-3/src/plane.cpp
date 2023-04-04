@@ -17,13 +17,13 @@ bool Plane::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, floa
     if (glm::dot(transformedDirection, mNormal) != 0) {
         mTValue = glm::dot(mNormal, mPoint - transformedOrigin) / glm::dot(mNormal, transformedDirection);
         mIntersectionPoint = origin + mTValue * direction;
-        mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(mNormal, 0.0f));
+        mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(mNormal, 0.0f)));
         return (tMin <= mTValue && mTValue <= tMax);
     }
     if (glm::dot(mNormal, transformedOrigin - mPoint) == 0) {
         mTValue = glm::max(tMin, 0.0f);
         mIntersectionPoint = origin + mTValue * direction;
-        mIntersectionNormal = glm::normalize(mNormalTransform * glm::vec4(mNormal, 0.0f));
+        mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(mNormal, 0.0f)));
         return true;
     }
     return false;
