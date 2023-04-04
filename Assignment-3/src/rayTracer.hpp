@@ -30,6 +30,7 @@ class RayTracer {
         static const int DISPLAY_SCALE = 1;
         static const int SAMPLE_SIDE = 1;
         RenderingMode mMode;
+        bool mGammaCorrection;
         int mFrameWidth;
         int mFrameHeight;
         int mDisplayScale;
@@ -57,6 +58,9 @@ class RayTracer {
         bool initializeSDL(std::string = "Assignment 3");
         void terminateSDL();
         void calibrateCamera(float, float, glm::vec3, glm::vec3, glm::vec3);
+        void enableGammaCorrection();
+        void disableGammaCorrection();
+        void applyGammaCorrection(glm::vec4&);
         void addPointSource(PointSource*);
         void addObject(Object*);
         bool shouldQuit();

@@ -9,6 +9,7 @@ const int RayTracer::SAMPLE_SIDE;
 
 RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, int *pDisplayScale, int *pSampleCount) {
     mMode = mode;
+    mGammaCorrection = false;
     mFrameWidth = pFrameWidth ? *pFrameWidth : FRAME_WIDTH;
     mFrameHeight = pFrameHeight ? *pFrameHeight : FRAME_HEIGHT;
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
@@ -98,6 +99,24 @@ void RayTracer::calibrateCamera(float verticalFOV, float imagePlane, glm::vec3 c
     }
 }
 
+void RayTracer::enableGammaCorrection() {
+    mGammaCorrection = true;
+}
+
+void RayTracer::disableGammaCorrection() {
+    mGammaCorrection = false;
+}
+
+void RayTracer::applyGammaCorrection(glm::vec4 &color) {
+    for (int i = 0; i < 3; i ++) {
+        if (color[i] <= 0.0031308) {
+            color[i] *= 12.92f;
+        } else {
+            color[i] = 1.055f * powf(color[i], 1.0f / 2.4f) - 0.055f;
+        }
+    }
+}
+
 void RayTracer::addPointSource(PointSource *pointSource) {
     mPointSources.push_back(pointSource);
 }
@@ -165,7 +184,10 @@ void RayTracer::traceRays() {
                                     }
                                     irradiance += pointSource->getIrradiance(intersectionPoint, intersectionNormal);
                                 }
-                                mCBuffer[i][j][x][y] = glm::min(glm::vec4((albedo * irradiance) / glm::pi<float>(), 1.0f), glm::vec4(1.0f));
+                                mCBuffer[i][j][x][y] = glm::max(glm::min(glm::vec4((albedo * irradiance) / glm::pi<float>(), 1.0f), glm::vec4(1.0f)), 0.0f);
+                                if (mGammaCorrection) {
+                                    applyGammaCorrection(mCBuffer[i][j][x][y]);
+                                }
                             }
                         } else {
                             mCBuffer[i][j][x][y] = glm::vec4(glm::vec3(0.0f), 1.0f);
