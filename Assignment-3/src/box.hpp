@@ -11,7 +11,7 @@ class Box: public Shape {
         Box();
         bool intersectRay(glm::vec3, glm::vec3, float, float);
         void setMinPoint(glm::vec3);
-        void setMaxPoint(float);
+        void setMaxPoint(glm::vec3); // it was float earlier?!
 };
 
 #endif // BOX_HPP
