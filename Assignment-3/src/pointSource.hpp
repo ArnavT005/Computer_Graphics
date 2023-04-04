@@ -13,6 +13,7 @@ class PointSource {
         void setCoordinate(glm::vec3);
         void setIntensity(glm::vec3);
         void setWorldToCamera(glm::mat4);
+        glm::vec3 getCameraCoordinate();
         glm::vec3 getIrradiance(glm::vec3, glm::vec3);
 };
 

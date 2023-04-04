@@ -7,7 +7,8 @@ const int RayTracer::FRAME_HEIGHT;
 const int RayTracer::DISPLAY_SCALE;
 const int RayTracer::SAMPLE_SIDE;
 
-RayTracer::RayTracer(int *pFrameWidth, int *pFrameHeight, int *pDisplayScale, int *pSampleCount) {
+RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, int *pDisplayScale, int *pSampleCount) {
+    mMode = mode;
     mFrameWidth = pFrameWidth ? *pFrameWidth : FRAME_WIDTH;
     mFrameHeight = pFrameHeight ? *pFrameHeight : FRAME_HEIGHT;
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
@@ -19,6 +20,7 @@ RayTracer::RayTracer(int *pFrameWidth, int *pFrameHeight, int *pDisplayScale, in
     mViewingDirection = glm::vec3(0.0f);
     mUpVector = glm::vec3(0.0f);
     mWorldToCamera = glm::mat4(1.0f);
+    mPointSources.clear();
     mObjects.clear();
     mSDLActive = false;
     mCBuffer.clear();
@@ -88,9 +90,16 @@ void RayTracer::calibrateCamera(float verticalFOV, float imagePlane, glm::vec3 c
     cameraToWorld[2] = glm::vec4(e[2], 0.0f);
     cameraToWorld[3] = glm::vec4(mCameraCenter, 1.0f);
     mWorldToCamera = glm::inverse(cameraToWorld);
+    for (PointSource *pointSource : mPointSources) {
+        pointSource->setWorldToCamera(mWorldToCamera);
+    }
     for (Object *obj : mObjects) {
         obj->setWorldToCamera(mWorldToCamera);
     }
+}
+
+void RayTracer::addPointSource(PointSource *pointSource) {
+    mPointSources.push_back(pointSource);
 }
 
 void RayTracer::addObject(Object *object) {
@@ -108,24 +117,63 @@ void RayTracer::traceRays() {
             glm::vec3 point = glm::vec3(pixelSize * (2 * j - mFrameWidth + 1 / mSampleSide) / 2, pixelSize * (mFrameHeight - 2 * i - 1 / mSampleSide) / 2, -1.0f);
             for (int x = 0; x < mSampleSide; x ++) {
                 for (int y = 0; y < mSampleSide; y ++) {
-                    glm::vec3 origin = glm::vec3(0.0f);
-                    glm::vec3 direction = point + glm::vec3(x * pixelSize / mSampleSide, y * pixelSize / mSampleSide, 0.0f);
-                    float minTValue = std::numeric_limits<float>::infinity();
-                    glm::vec3 intersectionPoint = glm::vec3(0.0f);
-                    glm::vec3 intersectionNormal = glm::vec3(0.0f);
-                    bool hit = false;
-                    for (Object *obj : mObjects) {
-                        if (obj->intersectRay(origin, direction, mImagePlane, minTValue)) {
-                            minTValue = obj->getTValue();
-                            intersectionPoint = obj->getIntersectionPoint();
-                            intersectionNormal = obj->getIntersectionNormal();
-                            hit = true;
+                    if (mMode == RenderingMode::NORMALS || mMode == RenderingMode::POINT_SOURCES) {
+                        glm::vec3 origin = glm::vec3(0.0f);
+                        glm::vec3 direction = point + glm::vec3(x * pixelSize / mSampleSide, y * pixelSize / mSampleSide, 0.0f);
+                        float minTValue = std::numeric_limits<float>::infinity();
+                        glm::vec3 intersectionPoint = glm::vec3(0.0f);
+                        glm::vec3 intersectionNormal = glm::vec3(0.0f);
+                        glm::vec3 albedo = glm::vec3(0.0f);
+                        bool hit = false;
+                        for (Object *obj : mObjects) {
+                            if (obj->intersectRay(origin, direction, mImagePlane, minTValue)) {
+                                minTValue = obj->getTValue();
+                                intersectionPoint = obj->getIntersectionPoint();
+                                intersectionNormal = obj->getIntersectionNormal();
+                                ShapeType shape = obj->getShape();
+                                switch (shape) {
+                                    case ShapeType::SPHERE:
+                                        albedo = static_cast<DiffuseSphere*>(obj)->getAlbedo();
+                                        break;
+                                    case ShapeType::PLANE:
+                                        albedo = static_cast<DiffusePlane*>(obj)->getAlbedo();
+                                        break;
+                                    default:
+                                        albedo = static_cast<DiffuseBox*>(obj)->getAlbedo();
+                                        break;
+                                }
+                                hit = true;
+                            }
                         }
-                    }
-                    if (hit) {
-                        mCBuffer[i][j][x][y] = glm::vec4(0.5f * (intersectionNormal + 1.0f), 1.0f);
+                        if (hit) {
+                            if (mMode == RenderingMode::NORMALS) {
+                                mCBuffer[i][j][x][y] = glm::vec4(0.5f * (intersectionNormal + 1.0f), 1.0f);
+                            } else {
+                                glm::vec3 irradiance(0.0f);
+                                for (PointSource *pointSource : mPointSources) {
+                                    glm::vec3 shadowOrigin = intersectionPoint;
+                                    glm::vec3 shadowDirection = glm::normalize(pointSource->getCameraCoordinate() - shadowOrigin);
+                                    hit = false;
+                                    for (Object *obj : mObjects) {
+                                        if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, std::numeric_limits<float>::infinity())) {
+                                            hit = true;
+                                            break;
+                                        }
+                                    }
+                                    if (hit) {
+                                        continue;
+                                    }
+                                    irradiance += pointSource->getIrradiance(intersectionPoint, intersectionNormal);
+                                }
+                                mCBuffer[i][j][x][y] = glm::vec4((albedo * irradiance) / glm::pi<float>(), 1.0f);
+                            }
+                        } else {
+                            mCBuffer[i][j][x][y] = glm::vec4(glm::vec3(0.0f), 1.0f);
+                        }
+                    } else if (mMode == RenderingMode::RAY_TRACING) {
+
                     } else {
-                        mCBuffer[i][j][x][y] = glm::vec4(glm::vec3(0.0f), 1.0f);
+
                     }
                 }
             }

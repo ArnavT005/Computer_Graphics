@@ -23,6 +23,14 @@ void Object::setWorldToCamera(glm::mat4 worldToCamera) {
     computeInverseTransforms();
 }
 
+ShapeType Object::getShape() {
+    return mShape;
+}
+
+MaterialType Object::getMaterial() {
+    return mMaterial;
+}
+
 float Object::getTValue() {
     return mTValue;
 }

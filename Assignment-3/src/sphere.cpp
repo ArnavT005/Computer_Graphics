@@ -115,5 +115,5 @@ glm::vec3 TransparentSphere::getReflectedRayDirection(glm::vec3 direction, glm::
 
 glm::vec3 TransparentSphere::getRefractedRayDirection(float outside, float inside, glm::vec3 direction, glm::vec3 normal) {
     float relative = outside / inside;
-    return (relative * glm::dot(direction, normal) - sqrtf(1 - powf(relative, 2) * (1 - powf(glm::dot(direction, normal), 2)))) * normal - relative * direction;
+    return glm::normalize((relative * glm::dot(direction, normal) - sqrtf(1 - powf(relative, 2) * (1 - powf(glm::dot(direction, normal), 2)))) * normal - relative * direction);
 }

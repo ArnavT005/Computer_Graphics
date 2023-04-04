@@ -4,7 +4,7 @@
 int main() {
     int frameWidth = 640, frameHeight = 480;
     int displayScale = 1, sampleCount = 1;
-    RayTracer r(&frameWidth, &frameHeight, &displayScale, &sampleCount);
+    RayTracer r(RenderingMode::NORMALS, &frameWidth, &frameHeight, &displayScale, &sampleCount);
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }

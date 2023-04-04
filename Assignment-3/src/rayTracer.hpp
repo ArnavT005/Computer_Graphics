@@ -1,8 +1,10 @@
 #ifndef RAY_TRACER_HPP
 #define RAY_TRACER_HPP
 
-#include "object.hpp"
-
+#include "sphere.hpp"
+#include "plane.hpp"
+#include "box.hpp"
+#include "pointSource.hpp"
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -14,12 +16,20 @@
 template <typename T>
 using array2D = std::vector<std::vector<T>>;
 
+enum RenderingMode {
+    NORMALS,        // diffuse objects only
+    POINT_SOURCES,  // diffuse objects and point sources only
+    RAY_TRACING,    // metallic/transparent objects and area light sources
+    PATH_TRACING,   // diffuse/metallic/transparent objects and area light sources
+};
+
 class RayTracer {
     private:
         static const int FRAME_WIDTH = 10;
         static const int FRAME_HEIGHT = 10;
         static const int DISPLAY_SCALE = 1;
         static const int SAMPLE_SIDE = 1;
+        RenderingMode mMode;
         int mFrameWidth;
         int mFrameHeight;
         int mDisplayScale;
@@ -32,6 +42,7 @@ class RayTracer {
         glm::vec3 mViewingDirection;
         glm::vec3 mUpVector;
         glm::mat4 mWorldToCamera;
+        std::vector<PointSource*> mPointSources;
         std::vector<Object*> mObjects;
         bool mSDLActive;
         array2D<array2D<glm::vec4>> mCBuffer;
@@ -41,11 +52,12 @@ class RayTracer {
         bool mQuit;
 
     public:
-        RayTracer(int* = nullptr, int* = nullptr, int* = nullptr, int* = nullptr);
+        RayTracer(RenderingMode, int* = nullptr, int* = nullptr, int* = nullptr, int* = nullptr);
         ~RayTracer();
         bool initializeSDL(std::string = "Assignment 3");
         void terminateSDL();
         void calibrateCamera(float, float, glm::vec3, glm::vec3, glm::vec3);
+        void addPointSource(PointSource*);
         void addObject(Object*);
         bool shouldQuit();
         void traceRays();
