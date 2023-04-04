@@ -88,12 +88,12 @@ void RayTracer::calibrateCamera(float verticalFOV, float imagePlane, glm::vec3 c
     cameraToWorld[2] = glm::vec4(e[2], 0.0f);
     cameraToWorld[3] = glm::vec4(mCameraCenter, 1.0f);
     mWorldToCamera = glm::inverse(cameraToWorld);
-    for (Shape *s : mObjects) {
-        s->setWorldToCamera(mWorldToCamera);
+    for (Object *obj : mObjects) {
+        obj->setWorldToCamera(mWorldToCamera);
     }
 }
 
-void RayTracer::addObject(Shape *object) {
+void RayTracer::addObject(Object *object) {
     mObjects.push_back(object);
 }
 
@@ -114,11 +114,11 @@ void RayTracer::traceRays() {
                     glm::vec3 intersectionPoint = glm::vec3(0.0f);
                     glm::vec3 intersectionNormal = glm::vec3(0.0f);
                     bool hit = false;
-                    for (Shape *s : mObjects) {
-                        if (s->intersectRay(origin, direction, mImagePlane, minTValue)) {
-                            minTValue = s->getTValue();
-                            intersectionPoint = s->getIntersectionPoint();
-                            intersectionNormal = s->getIntersectionNormal();
+                    for (Object *obj : mObjects) {
+                        if (obj->intersectRay(origin, direction, mImagePlane, minTValue)) {
+                            minTValue = obj->getTValue();
+                            intersectionPoint = obj->getIntersectionPoint();
+                            intersectionNormal = obj->getIntersectionNormal();
                             hit = true;
                         }
                     }

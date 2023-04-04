@@ -8,7 +8,7 @@ int main() {
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
-    Sphere s[2];
+    DiffuseSphere s[2];
     s[0].setCenter(glm::vec3(0.0f, 0.0f, -2.0f));
     s[0].setRadius(1.0f);
     s[1].setCenter(glm::vec3(0.0f, -101.0f, -2.0f));

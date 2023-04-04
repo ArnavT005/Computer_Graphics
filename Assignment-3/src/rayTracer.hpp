@@ -1,7 +1,7 @@
 #ifndef RAY_TRACER_HPP
 #define RAY_TRACER_HPP
 
-#include "shape.hpp"
+#include "object.hpp"
 
 #include <stdio.h>
 #include <string>
@@ -32,7 +32,7 @@ class RayTracer {
         glm::vec3 mViewingDirection;
         glm::vec3 mUpVector;
         glm::mat4 mWorldToCamera;
-        std::vector<Shape*> mObjects;
+        std::vector<Object*> mObjects;
         bool mSDLActive;
         array2D<array2D<glm::vec4>> mCBuffer;
         SDL_Surface *mPFramebuffer;
@@ -46,7 +46,7 @@ class RayTracer {
         bool initializeSDL(std::string = "Assignment 3");
         void terminateSDL();
         void calibrateCamera(float, float, glm::vec3, glm::vec3, glm::vec3);
-        void addObject(Shape*);
+        void addObject(Object*);
         bool shouldQuit();
         void traceRays();
         void show();

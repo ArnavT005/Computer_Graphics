@@ -1,6 +1,15 @@
 #include "plane.hpp"
 
-Plane::Plane() {}
+Plane::Plane(MaterialType material, glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Object(ShapeType::PLANE, material, transform, worldToCamera) {}
+
+void Plane::setPoint(glm::vec3 point) {
+    mPoint = point;
+}
+
+void Plane::setNormal(glm::vec3 normal) {
+    mNormal = glm::normalize(normal);
+}
 
 bool Plane::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
     glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
@@ -20,10 +29,33 @@ bool Plane::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, floa
     return false;
 }
 
-void Plane::setPoint(glm::vec3 point) {
-    mPoint = point;
+DiffusePlane::DiffusePlane(glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Plane(MaterialType::DIFFUSE, transform, worldToCamera) {}
+
+void DiffusePlane::setAlbedo(glm::vec3 albedo) {
+    mAlbedo = albedo;
 }
 
-void Plane::setNormal(glm::vec3 normal) {
-    mNormal = glm::normalize(normal);
+glm::vec3 DiffusePlane::getAlbedo() {
+    return mAlbedo;
+}
+
+MetallicPlane::MetallicPlane(glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Plane(MaterialType::METALLIC, transform, worldToCamera) {}
+
+void MetallicPlane::setFresnelConstant(glm::vec3 fresnelConstant) {
+    mFresnelConstant = fresnelConstant;
+}
+
+glm::vec3 MetallicPlane::getFresnelConstant() {
+    return mFresnelConstant;
+}
+
+glm::vec3 MetallicPlane::getFresnelCoefficient(glm::vec3 direction, glm::vec3 normal) {
+    direction = - glm::normalize(direction);
+    return mFresnelConstant + (1.0f - mFresnelConstant) * powf((1 - glm::dot(direction, normal)), 5);
+}
+
+glm::vec3 MetallicPlane::getReflectedRayDirection(glm::vec3 direction, glm::vec3 normal) {
+    return glm::normalize(direction - 2.0f * glm::dot(direction, normal) * normal);
 }

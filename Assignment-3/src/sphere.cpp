@@ -1,8 +1,15 @@
 #include "sphere.hpp"
 
-#include <iostream>
+Sphere::Sphere(MaterialType material, glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Object(ShapeType::SPHERE, material, transform, worldToCamera) {}
 
-Sphere::Sphere() {}
+void Sphere::setCenter(glm::vec3 center) {
+    mCenter = center;
+}
+
+void Sphere::setRadius(float radius) {
+    mRadius = radius;
+}
 
 bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
     glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
@@ -34,10 +41,79 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
     return true;
 }
 
-void Sphere::setCenter(glm::vec3 center) {
-    mCenter = center;
+SphereSource::SphereSource(glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Sphere(MaterialType::LIGHT, transform, worldToCamera) {}
+
+void SphereSource::setRadiance(glm::vec3 radiance) {
+    mRadiance = radiance;
 }
 
-void Sphere::setRadius(float radius) {
-    mRadius = radius;
+glm::vec3 SphereSource::getRadiance() {
+    return mRadiance;
+}
+
+DiffuseSphere::DiffuseSphere(glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Sphere(MaterialType::DIFFUSE, transform, worldToCamera) {}
+
+void DiffuseSphere::setAlbedo(glm::vec3 albedo) {
+    mAlbedo = albedo;
+}
+
+glm::vec3 DiffuseSphere::getAlbedo() {
+    return mAlbedo;
+}
+
+MetallicSphere::MetallicSphere(glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Sphere(MaterialType::METALLIC, transform, worldToCamera) {}
+
+void MetallicSphere::setFresnelConstant(glm::vec3 fresnelConstant) {
+    mFresnelConstant = fresnelConstant;
+}
+
+glm::vec3 MetallicSphere::getFresnelConstant() {
+    return mFresnelConstant;
+}
+
+glm::vec3 MetallicSphere::getFresnelCoefficient(glm::vec3 direction, glm::vec3 normal) {
+    direction = - glm::normalize(direction);
+    return mFresnelConstant + (1.0f - mFresnelConstant) * powf((1 - glm::dot(direction, normal)), 5);
+}
+
+glm::vec3 MetallicSphere::getReflectedRayDirection(glm::vec3 direction, glm::vec3 normal) {
+    return glm::normalize(direction - 2.0f * glm::dot(direction, normal) * normal);
+}
+
+TransparentSphere::TransparentSphere(glm::mat4 transform, glm::mat4 worldToCamera) 
+    : Sphere(MaterialType::TRANSPARENT, transform, worldToCamera) {}
+
+void TransparentSphere::setRefractiveIndex(float refractiveIndex) {
+    mRefractiveIndex = refractiveIndex;
+}
+
+float TransparentSphere::getRefractiveIndex() {
+    return mRefractiveIndex;
+}
+
+float TransparentSphere::getFresnelConstant(float outside, float inside) {
+    return powf((outside - inside) / (outside + inside), 2);
+}
+
+float TransparentSphere::getFresnelCoefficient(float outside, float inside, glm::vec3 direction, glm::vec3 normal) {
+    float fresnelConstant = getFresnelConstant(outside, inside);
+    direction = - glm::normalize(direction);
+    glm::vec3 transmission = getRefractedRayDirection(outside, inside, direction, normal);
+    if (glm::dot(direction, normal) < glm::dot(-transmission, normal)) {
+        return fresnelConstant + (1.0f - fresnelConstant) * powf(1 - glm::dot(direction, normal), 5);
+    } else {
+        return fresnelConstant + (1.0f - fresnelConstant) * powf(1 - glm::dot(-transmission, normal), 5);
+    }
+}
+
+glm::vec3 TransparentSphere::getReflectedRayDirection(glm::vec3 direction, glm::vec3 normal) {
+    return glm::normalize(direction - 2.0f * glm::dot(direction, normal) * normal);
+}
+
+glm::vec3 TransparentSphere::getRefractedRayDirection(float outside, float inside, glm::vec3 direction, glm::vec3 normal) {
+    float relative = outside / inside;
+    return (relative * glm::dot(direction, normal) - sqrtf(1 - powf(relative, 2) * (1 - powf(glm::dot(direction, normal), 2)))) * normal - relative * direction;
 }

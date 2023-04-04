@@ -9,10 +9,10 @@ int main() {
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
-    Sphere s;
+    DiffuseSphere s;
     s.setCenter(glm::vec3(0.0f, 0.0f, -2.0f));
     s.setRadius(1.0f);
-    Plane p;
+    DiffusePlane p;
     p.setPoint(glm::vec3(0.0f, -1.0f, 0.0f));
     p.setNormal(glm::vec3(0.0f, 1.0f, 0.0f));
     r.addObject(&s);
