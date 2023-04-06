@@ -25,10 +25,13 @@ class DiffusePlane : public Plane {
 
 class MetallicPlane : public Plane {
     private:
+        glm::vec3 mAlbedo;
         glm::vec3 mFresnelConstant;
     public:
         MetallicPlane(glm::mat4 = glm::mat4(1.0f), glm::mat4 = glm::mat4(1.0f));
+        void setAlbedo(glm::vec3);
         void setFresnelConstant(glm::vec3);
+        glm::vec3 getAlbedo();
         glm::vec3 getFresnelConstant();
         glm::vec3 getFresnelCoefficient(glm::vec3, glm::vec3);
         glm::vec3 getReflectedRayDirection(glm::vec3, glm::vec3);

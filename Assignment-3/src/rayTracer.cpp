@@ -10,6 +10,9 @@ const int RayTracer::SAMPLE_SIDE;
 RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, int *pDisplayScale, int *pSampleCount) {
     mMode = mode;
     mGammaCorrection = false;
+    mRecursionDepth = 0;
+    mSkyColor = glm::vec3(0.53, 0.81, 0.92);
+    mAmbientLight = glm::vec3(0.1f);
     mFrameWidth = pFrameWidth ? *pFrameWidth : FRAME_WIDTH;
     mFrameHeight = pFrameHeight ? *pFrameHeight : FRAME_HEIGHT;
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
@@ -117,6 +120,134 @@ void RayTracer::applyGammaCorrection(glm::vec4 &color) {
     }
 }
 
+glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int depth) {
+    float minTValue = std::numeric_limits<float>::infinity();
+    glm::vec3 intersectionPoint = glm::vec3(0.0f);
+    glm::vec3 intersectionNormal = glm::vec3(0.0f);
+    ShapeType shape;
+    MaterialType material;
+    Object *object = nullptr;
+    float tMin = (depth == 0) ? mImagePlane : 0.001; 
+    bool hit = false;
+    for (Object *obj : mObjects) {
+        if (obj->intersectRay(origin, direction, tMin, minTValue)) {
+            minTValue = obj->getTValue();
+            intersectionPoint = obj->getIntersectionPoint();
+            intersectionNormal = obj->getIntersectionNormal();
+            shape = obj->getShape();
+            material = obj->getMaterial();
+            object = obj;
+            hit = true;
+        }
+    }
+    if (!hit) {
+        return mSkyColor;
+    }
+    if (material == MaterialType::LIGHT) {
+        switch (shape) {
+            case ShapeType::SPHERE:
+                return static_cast<SphereSource*>(object)->getRadiance();
+            default:
+                return static_cast<BoxSource*>(object)->getRadiance();
+        }
+    }
+    if (material == MaterialType::DIFFUSE) {
+        glm::vec3 radiance(0.0f);
+        glm::vec3 albedo(0.0f);
+        switch (shape) {
+            case ShapeType::SPHERE:
+                albedo = static_cast<DiffuseSphere*>(object)->getAlbedo();
+                break;
+            case ShapeType::PLANE:
+                albedo = static_cast<DiffusePlane*>(object)->getAlbedo();
+                break;
+            default:
+                albedo = static_cast<DiffuseBox*>(object)->getAlbedo();
+                break;
+        }
+        radiance += (albedo * mAmbientLight) / glm::pi<float>();
+        glm::vec3 irradiance(0.0f);
+        bool shadow = false;
+        for (PointSource *pointSource : mPointSources) {
+            glm::vec3 shadowOrigin = intersectionPoint;
+            glm::vec3 shadowDirection = pointSource->getCameraCoordinate() - shadowOrigin;
+            shadow = false;
+            for (Object *obj : mObjects) {
+                if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, 1)) {
+                    shadow = true;
+                    break;
+                }
+            }
+            if (shadow) {
+                continue;
+            }
+            irradiance += pointSource->getIrradiance(intersectionPoint, intersectionNormal);
+        }
+        radiance += (albedo * irradiance) / glm::pi<float>();
+        return radiance;
+    }
+    if (material == MaterialType::METALLIC) {
+        glm::vec3 radiance(0.0f);
+        glm::vec3 albedo(0.0f);
+        glm::vec3 fresnelCoefficient;
+        switch (shape) {
+            case ShapeType::SPHERE:
+                albedo = static_cast<MetallicSphere*>(object)->getAlbedo();
+                if (depth >= mRecursionDepth) {
+                    break;
+                }
+                fresnelCoefficient = static_cast<MetallicSphere*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                radiance += fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicSphere*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
+                break;
+            case ShapeType::PLANE:
+                albedo = static_cast<MetallicPlane*>(object)->getAlbedo();
+                if (depth >= mRecursionDepth) {
+                    break;
+                }
+                fresnelCoefficient = static_cast<MetallicPlane*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                radiance += fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicPlane*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
+                break;
+            default:
+                albedo = static_cast<MetallicBox*>(object)->getAlbedo();
+                if (depth >= mRecursionDepth) {
+                    break;
+                }
+                fresnelCoefficient = static_cast<MetallicBox*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                radiance += fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicBox*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
+                break;
+        }
+        radiance += (1.0f - fresnelCoefficient) * (albedo * mAmbientLight) / glm::pi<float>();
+        glm::vec3 irradiance(0.0f);
+        bool shadow = false;
+        for (PointSource *pointSource : mPointSources) {
+            glm::vec3 shadowOrigin = intersectionPoint;
+            glm::vec3 shadowDirection = pointSource->getCameraCoordinate() - shadowOrigin;
+            shadow = false;
+            for (Object *obj : mObjects) {
+                if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, 1)) {
+                    shadow = true;
+                    break;
+                }
+            }
+            if (shadow) {
+                continue;
+            }
+            irradiance += pointSource->getIrradiance(intersectionPoint, intersectionNormal);
+        }
+        radiance += (1.0f - fresnelCoefficient) * (albedo * irradiance) / glm::pi<float>();
+        return radiance;
+    }
+    glm::vec3 reflectedRadiance(0.0f), refractedRadiance(0.0f);
+    switch (shape) {
+        case ShapeType::SPHERE:
+            
+            break;
+        default:
+            break;
+    }
+    return mSkyColor;
+}
+
 void RayTracer::addPointSource(PointSource *pointSource) {
     mPointSources.push_back(pointSource);
 }
@@ -136,9 +267,9 @@ void RayTracer::traceRays() {
             glm::vec3 point = glm::vec3(pixelSize * (2 * j - mFrameWidth + 1 / mSampleSide) / 2, pixelSize * (mFrameHeight - 2 * i - 1 / mSampleSide) / 2, -1.0f);
             for (int x = 0; x < mSampleSide; x ++) {
                 for (int y = 0; y < mSampleSide; y ++) {
+                    glm::vec3 origin = glm::vec3(0.0f);
+                    glm::vec3 direction = point + glm::vec3(x * pixelSize / mSampleSide, y * pixelSize / mSampleSide, 0.0f);
                     if (mMode == RenderingMode::NORMALS || mMode == RenderingMode::POINT_SOURCES) {
-                        glm::vec3 origin = glm::vec3(0.0f);
-                        glm::vec3 direction = point + glm::vec3(x * pixelSize / mSampleSide, y * pixelSize / mSampleSide, 0.0f);
                         float minTValue = std::numeric_limits<float>::infinity();
                         glm::vec3 intersectionPoint = glm::vec3(0.0f);
                         glm::vec3 intersectionNormal = glm::vec3(0.0f);
@@ -194,6 +325,11 @@ void RayTracer::traceRays() {
                         }
                     } else if (mMode == RenderingMode::RAY_TRACING) {
                         // add code for ray tracing metallic/transparent materials
+                        glm::vec3 radiance = incidentRadiance(origin, direction, 0);
+                        mCBuffer[i][j][x][y] = glm::max(glm::min(glm::vec4(radiance, 1.0f), glm::vec4(1.0f)), glm::vec4(0.0f));
+                        if (mGammaCorrection) {
+                            applyGammaCorrection(mCBuffer[i][j][x][y]);
+                        }
                     } else {
                         // add code for path tracing diffuse/metallic/transparent materials
                     }
@@ -280,6 +416,18 @@ int RayTracer::getScreenWidth() {
 
 int RayTracer::getScreenHeight() {
     return mScreenHeight;
+}
+
+void RayTracer::setRecursionDepth(int depth) {
+    mRecursionDepth = depth;
+}
+
+void RayTracer::setSkyColor(glm::vec3 skyColor) {
+    mSkyColor = skyColor;
+}
+
+void RayTracer::setAmbientLight(glm::vec3 ambientLight) {
+    mAmbientLight = ambientLight;
 }
 
 bool RayTracer::setFrameWidth(int frameWidth) {

@@ -16,3 +16,6 @@ target_link_libraries(spheres a3)
 
 add_executable(sphere_plane examples/sphere_plane.cpp)
 target_link_libraries(sphere_plane a3)
+
+add_executable(specular examples/specular.cpp)
+target_link_libraries(specular a3)

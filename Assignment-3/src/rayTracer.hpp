@@ -18,7 +18,7 @@ using array2D = std::vector<std::vector<T>>;
 
 enum RenderingMode {
     NORMALS,        // diffuse objects only
-    POINT_SOURCES,  // diffuse objects and point sources only
+    POINT_SOURCES,  // diffuses objects and point sources only
     RAY_TRACING,    // metallic/transparent objects and area light sources
     PATH_TRACING,   // diffuse/metallic/transparent objects and area light sources
 };
@@ -31,6 +31,9 @@ class RayTracer {
         static const int SAMPLE_SIDE = 1;
         RenderingMode mMode;
         bool mGammaCorrection;
+        int mRecursionDepth;
+        glm::vec3 mSkyColor;
+        glm::vec3 mAmbientLight;
         int mFrameWidth;
         int mFrameHeight;
         int mDisplayScale;
@@ -61,6 +64,7 @@ class RayTracer {
         void enableGammaCorrection();
         void disableGammaCorrection();
         void applyGammaCorrection(glm::vec4&);
+        glm::vec3 incidentRadiance(glm::vec3, glm::vec3, int);
         void addPointSource(PointSource*);
         void addObject(Object*);
         bool shouldQuit();
@@ -75,6 +79,9 @@ class RayTracer {
         int getSampleCount();
         int getScreenWidth();
         int getScreenHeight();
+        void setRecursionDepth(int);
+        void setSkyColor(glm::vec3);
+        void setAmbientLight(glm::vec3);
         bool setFrameWidth(int);
         bool setFrameHeight(int);
         bool setDisplayScale(int);

@@ -60,8 +60,16 @@ glm::vec3 DiffuseBox::getAlbedo() {
 MetallicBox::MetallicBox(glm::mat4 transform, glm::mat4 worldToCamera) 
     : Box(MaterialType::METALLIC, transform, worldToCamera) {}
 
+void MetallicBox::setAlbedo(glm::vec3 albedo) {
+    mAlbedo = albedo;
+}
+
 void MetallicBox::setFresnelConstant(glm::vec3 fresnelConstant) {
     mFresnelConstant = fresnelConstant;
+}
+
+glm::vec3 MetallicBox::getAlbedo() {
+    return mAlbedo;
 }
 
 glm::vec3 MetallicBox::getFresnelConstant() {

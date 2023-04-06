@@ -43,8 +43,16 @@ glm::vec3 DiffusePlane::getAlbedo() {
 MetallicPlane::MetallicPlane(glm::mat4 transform, glm::mat4 worldToCamera) 
     : Plane(MaterialType::METALLIC, transform, worldToCamera) {}
 
+void MetallicPlane::setAlbedo(glm::vec3 albedo) {
+    mAlbedo = albedo;
+}
+
 void MetallicPlane::setFresnelConstant(glm::vec3 fresnelConstant) {
     mFresnelConstant = fresnelConstant;
+}
+
+glm::vec3 MetallicPlane::getAlbedo() {
+    return mAlbedo;
 }
 
 glm::vec3 MetallicPlane::getFresnelConstant() {

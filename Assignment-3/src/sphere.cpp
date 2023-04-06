@@ -66,8 +66,16 @@ glm::vec3 DiffuseSphere::getAlbedo() {
 MetallicSphere::MetallicSphere(glm::mat4 transform, glm::mat4 worldToCamera) 
     : Sphere(MaterialType::METALLIC, transform, worldToCamera) {}
 
+void MetallicSphere::setAlbedo(glm::vec3 albedo) {
+    mAlbedo = albedo;
+}
+
 void MetallicSphere::setFresnelConstant(glm::vec3 fresnelConstant) {
     mFresnelConstant = fresnelConstant;
+}
+
+glm::vec3 MetallicSphere::getAlbedo() {
+    return mAlbedo;
 }
 
 glm::vec3 MetallicSphere::getFresnelConstant() {
