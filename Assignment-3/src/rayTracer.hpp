@@ -64,7 +64,7 @@ class RayTracer {
         void enableGammaCorrection();
         void disableGammaCorrection();
         void applyGammaCorrection(glm::vec4&);
-        glm::vec3 incidentRadiance(glm::vec3, glm::vec3, int);
+        glm::vec3 incidentRadiance(glm::vec3, glm::vec3, int, bool = false);
         void addPointSource(PointSource*);
         void addObject(Object*);
         bool shouldQuit();

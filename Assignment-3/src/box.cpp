@@ -102,8 +102,8 @@ float TransparentBox::getFresnelConstant(float outside, float inside) {
 
 float TransparentBox::getFresnelCoefficient(float outside, float inside, glm::vec3 direction, glm::vec3 normal) {
     float fresnelConstant = getFresnelConstant(outside, inside);
-    direction = - glm::normalize(direction);
     glm::vec3 transmission = getRefractedRayDirection(outside, inside, direction, normal);
+    direction = - glm::normalize(direction);
     if (glm::dot(direction, normal) < glm::dot(-transmission, normal)) {
         return fresnelConstant + (1.0f - fresnelConstant) * powf(1 - glm::dot(direction, normal), 5);
     } else {
@@ -117,5 +117,9 @@ glm::vec3 TransparentBox::getReflectedRayDirection(glm::vec3 direction, glm::vec
 
 glm::vec3 TransparentBox::getRefractedRayDirection(float outside, float inside, glm::vec3 direction, glm::vec3 normal) {
     float relative = outside / inside;
-    return (relative * glm::dot(direction, normal) - sqrtf(1 - powf(relative, 2) * (1 - powf(glm::dot(direction, normal), 2)))) * normal - relative * direction;
+    direction = - glm::normalize(direction);
+    if (1 - powf(relative, 2) * (1 - powf(glm::dot(direction, normal), 2)) < 0) {
+        return glm::vec3(0);
+    }
+    return glm::normalize((relative * glm::dot(direction, normal) - sqrtf(1 - powf(relative, 2) * (1 - powf(glm::dot(direction, normal), 2)))) * normal - relative * direction);
 }
