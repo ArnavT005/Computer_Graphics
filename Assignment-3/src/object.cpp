@@ -42,3 +42,7 @@ glm::vec3 Object::getIntersectionPoint() {
 glm::vec3 Object::getIntersectionNormal() {
     return mIntersectionNormal;
 }
+
+bool Object::getInside() {
+    return mInside;
+}

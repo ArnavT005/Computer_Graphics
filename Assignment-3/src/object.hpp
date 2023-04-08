@@ -27,6 +27,7 @@ class Object {
         float mTValue;
         glm::vec3 mIntersectionPoint;
         glm::vec3 mIntersectionNormal;
+        bool mInside;
         void computeInverseTransforms();
     public:
         Object(ShapeType, MaterialType, glm::mat4 = glm::mat4(1.0f), glm::mat4 = glm::mat4(1.0f));
@@ -37,6 +38,8 @@ class Object {
         float getTValue();
         glm::vec3 getIntersectionPoint();
         glm::vec3 getIntersectionNormal();
+        bool getInside();
+        virtual bool isInside(glm::vec3) = 0;
         virtual bool intersectRay(glm::vec3, glm::vec3, float, float) = 0;
 };
 

@@ -11,19 +11,25 @@ void Plane::setNormal(glm::vec3 normal) {
     mNormal = glm::normalize(normal);
 }
 
+bool Plane::isInside(glm::vec3 point) {
+    mInside = glm::dot(point - mPoint, mNormal) < 0;
+    return mInside;
+}
+
 bool Plane::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
     glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
     glm::vec3 transformedDirection(mRayTransform * glm::vec4(direction, 0.0f));
+    float normalSign = isInside(transformedOrigin + 0.001f * transformedDirection) ? -1 : 1;
     if (glm::dot(transformedDirection, mNormal) != 0) {
         mTValue = glm::dot(mNormal, mPoint - transformedOrigin) / glm::dot(mNormal, transformedDirection);
         mIntersectionPoint = origin + mTValue * direction;
-        mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(mNormal, 0.0f)));
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(mNormal, 0.0f)));
         return (tMin <= mTValue && mTValue <= tMax);
     }
     if (glm::dot(mNormal, transformedOrigin - mPoint) == 0) {
         mTValue = glm::max(tMin, 0.0f);
         mIntersectionPoint = origin + mTValue * direction;
-        mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(mNormal, 0.0f)));
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(mNormal, 0.0f)));
         return true;
     }
     return false;

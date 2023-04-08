@@ -9,6 +9,10 @@ void Box::setPoints(glm::vec3 minPoint, glm::vec3 maxPoint) {
     mMaxPoint = maxPoint;
 }
 
+bool Box::isInside(glm::vec3 point) {
+    // return true if point is inside the box, false otherwise
+}
+
 bool Box::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
     // Implement ray-box intersection
     // Use mRayTransform for transforming ray before intersection
@@ -88,12 +92,20 @@ glm::vec3 MetallicBox::getReflectedRayDirection(glm::vec3 direction, glm::vec3 n
 TransparentBox::TransparentBox(glm::mat4 transform, glm::mat4 worldToCamera) 
     : Box(MaterialType::TRANSPARENT, transform, worldToCamera) {}
 
-void TransparentBox::setRefractiveIndex(float refractiveIndex) {
-    mRefractiveIndex = refractiveIndex;
+void TransparentBox::setInternalRefractiveIndex(float internalRefractiveIndex) {
+    mInternalRefractiveIndex = internalRefractiveIndex;
 }
 
-float TransparentBox::getRefractiveIndex() {
-    return mRefractiveIndex;
+void TransparentBox::setExternalRefractiveIndex(float externalRefractiveIndex) {
+    mExternalRefractiveIndex = externalRefractiveIndex;
+}
+
+float TransparentBox::getInternalRefractiveIndex() {
+    return mInternalRefractiveIndex;
+}
+
+float TransparentBox::getExternalRefractiveIndex() {
+    return mExternalRefractiveIndex;
 }
 
 float TransparentBox::getFresnelConstant(float outside, float inside) {

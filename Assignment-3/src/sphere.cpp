@@ -11,6 +11,11 @@ void Sphere::setRadius(float radius) {
     mRadius = radius;
 }
 
+bool Sphere::isInside(glm::vec3 point) {
+    mInside = glm::dot(point - mCenter, point - mCenter) < mRadius * mRadius;
+    return mInside;
+}
+
 bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
     glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
     glm::vec3 transformedDirection(mRayTransform * glm::vec4(direction, 0.0f));
@@ -20,6 +25,7 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
     if (b * b - 4 * a * c < 0) {
         return false;
     }
+    float normalSign = isInside(transformedOrigin + 0.001f * transformedDirection) ? -1 : 1;
     float root[2];
     root[0] = (- b + glm::sqrt(b * b - 4 * a * c)) / (2 * a);
     root[1] = (- b - glm::sqrt(b * b - 4 * a * c)) / (2 * a);
@@ -27,7 +33,7 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
         if (tMin <= root[1] && root[1] <= tMax) {
             mTValue = root[1];
             mIntersectionPoint = origin + mTValue * direction;
-            mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f)));
+            mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f)));
             return true;
         }
         return false;
@@ -37,7 +43,7 @@ bool Sphere::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, flo
     }
     mTValue = root[0];
     mIntersectionPoint = origin + mTValue * direction;
-    mIntersectionNormal = glm::normalize(glm::vec3(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f)));
+    mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection - mCenter, 0.0f)));
     return true;
 }
 
@@ -94,12 +100,20 @@ glm::vec3 MetallicSphere::getReflectedRayDirection(glm::vec3 direction, glm::vec
 TransparentSphere::TransparentSphere(glm::mat4 transform, glm::mat4 worldToCamera) 
     : Sphere(MaterialType::TRANSPARENT, transform, worldToCamera) {}
 
-void TransparentSphere::setRefractiveIndex(float refractiveIndex) {
-    mRefractiveIndex = refractiveIndex;
+void TransparentSphere::setInternalRefractiveIndex(float internalRefractiveIndex) {
+    mInternalRefractiveIndex = internalRefractiveIndex;
 }
 
-float TransparentSphere::getRefractiveIndex() {
-    return mRefractiveIndex;
+void TransparentSphere::setExternalRefractiveIndex(float externalRefractiveIndex) {
+    mExternalRefractiveIndex = externalRefractiveIndex;
+}
+
+float TransparentSphere::getInternalRefractiveIndex() {
+    return mInternalRefractiveIndex;
+}
+
+float TransparentSphere::getExternalRefractiveIndex() {
+    return mExternalRefractiveIndex;
 }
 
 float TransparentSphere::getFresnelConstant(float outside, float inside) {

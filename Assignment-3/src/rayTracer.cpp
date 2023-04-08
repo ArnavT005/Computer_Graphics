@@ -11,9 +11,8 @@ RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, in
     mMode = mode;
     mGammaCorrection = false;
     mRecursionDepth = 0;
-    // mSkyColor = glm::vec3(0.53, 0.81, 0.92);
     mSkyColor = glm::vec3(1.0f);
-    mAmbientLight = glm::vec3(0.1f);
+    mAmbientRadiance = glm::vec3(0.1f);
     mFrameWidth = pFrameWidth ? *pFrameWidth : FRAME_WIDTH;
     mFrameHeight = pFrameHeight ? *pFrameHeight : FRAME_HEIGHT;
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
@@ -121,12 +120,10 @@ void RayTracer::applyGammaCorrection(glm::vec4 &color) {
     }
 }
 
-glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int depth, bool inside) {
+glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int depth) {
     float minTValue = std::numeric_limits<float>::infinity();
     glm::vec3 intersectionPoint = glm::vec3(0.0f);
     glm::vec3 intersectionNormal = glm::vec3(0.0f);
-    ShapeType shape;
-    MaterialType material;
     Object *object = nullptr;
     float tMin = (depth == 0) ? mImagePlane : 0.001; 
     bool hit = false;
@@ -135,8 +132,6 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
             minTValue = obj->getTValue();
             intersectionPoint = obj->getIntersectionPoint();
             intersectionNormal = obj->getIntersectionNormal();
-            shape = obj->getShape();
-            material = obj->getMaterial();
             object = obj;
             hit = true;
         }
@@ -144,9 +139,8 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
     if (!hit) {
         return mSkyColor;
     }
-    if (inside) {
-        intersectionNormal = -intersectionNormal;
-    }
+    ShapeType shape = object->getShape();
+    MaterialType material = object->getMaterial();
     if (material == MaterialType::LIGHT) {
         switch (shape) {
             case ShapeType::SPHERE:
@@ -167,9 +161,8 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
                 break;
             default:
                 albedo = static_cast<DiffuseBox*>(object)->getAlbedo();
-                break;
         }
-        radiance += (albedo * mAmbientLight) / glm::pi<float>();
+        radiance += albedo * mAmbientRadiance;
         glm::vec3 irradiance(0.0f);
         bool shadow = false;
         for (PointSource *pointSource : mPointSources) {
@@ -221,9 +214,8 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
                 }
                 fresnelCoefficient = static_cast<MetallicBox*>(object)->getFresnelCoefficient(direction, intersectionNormal);
                 radiance += fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicBox*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
-                break;
         }
-        radiance += (1.0f - fresnelCoefficient) * (albedo * mAmbientLight) / glm::pi<float>();
+        radiance += (1.0f - fresnelCoefficient) * (albedo * mAmbientRadiance);
         glm::vec3 irradiance(0.0f);
         bool shadow = false;
         for (PointSource *pointSource : mPointSources) {
@@ -249,45 +241,42 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
     }
     glm::vec3 reflectedRadiance(0.0f), refractedRadiance(0.0f);
     float fresnelCoefficient, insideRefractiveIndex, outsideRefractiveIndex;
-    float objectRefractiveIndex;
     glm::vec3 reflectedRayDirection, refractedRayDirection;
+    bool inside = object->getInside();
     switch (shape) {
         case ShapeType::SPHERE:
-            objectRefractiveIndex = static_cast<TransparentSphere*>(object)->getRefractiveIndex();
             if (inside) {
-                outsideRefractiveIndex = objectRefractiveIndex;
-                insideRefractiveIndex = 1.0f;
+                outsideRefractiveIndex = static_cast<TransparentSphere*>(object)->getInternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentSphere*>(object)->getExternalRefractiveIndex();
             } else {
-                outsideRefractiveIndex = 1.0f;
-                insideRefractiveIndex = objectRefractiveIndex;
+                outsideRefractiveIndex = static_cast<TransparentSphere*>(object)->getExternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentSphere*>(object)->getInternalRefractiveIndex();
             }
             fresnelCoefficient = static_cast<TransparentSphere*>(object)->getFresnelCoefficient(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
             reflectedRayDirection = static_cast<TransparentSphere*>(object)->getReflectedRayDirection(direction, intersectionNormal);
             refractedRayDirection = static_cast<TransparentSphere*>(object)->getRefractedRayDirection(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
             break;
         default:
-            objectRefractiveIndex = static_cast<TransparentBox*>(object)->getRefractiveIndex();
             if (inside) {
-                outsideRefractiveIndex = objectRefractiveIndex;
-                insideRefractiveIndex = 1.0f;
+                outsideRefractiveIndex = static_cast<TransparentBox*>(object)->getInternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentBox*>(object)->getExternalRefractiveIndex();
             } else {
-                outsideRefractiveIndex = 1.0f;
-                insideRefractiveIndex = objectRefractiveIndex;
+                outsideRefractiveIndex = static_cast<TransparentBox*>(object)->getExternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentBox*>(object)->getInternalRefractiveIndex();
             }
             fresnelCoefficient = static_cast<TransparentBox*>(object)->getFresnelCoefficient(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
             reflectedRayDirection = static_cast<TransparentBox*>(object)->getReflectedRayDirection(direction, intersectionNormal);
             refractedRayDirection = static_cast<TransparentBox*>(object)->getRefractedRayDirection(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
-            break;
     }
     if (depth >= mRecursionDepth) {
         return mSkyColor;
     }
-    reflectedRadiance = fresnelCoefficient * incidentRadiance(intersectionPoint, reflectedRayDirection, depth + 1, inside);
+    reflectedRadiance = fresnelCoefficient * incidentRadiance(intersectionPoint, reflectedRayDirection, depth + 1);
     direction = glm::normalize(direction);
     if (refractedRayDirection == glm::vec3(0)) {
        return reflectedRadiance;
     }
-    refractedRadiance = glm::vec3(1 - fresnelCoefficient) * incidentRadiance(intersectionPoint, refractedRayDirection, depth + 1, !inside);
+    refractedRadiance = glm::vec3(1 - fresnelCoefficient) * incidentRadiance(intersectionPoint, refractedRayDirection, depth + 1);
     return reflectedRadiance + refractedRadiance;
 }
 
@@ -312,62 +301,25 @@ void RayTracer::traceRays() {
                 for (int y = 0; y < mSampleSide; y ++) {
                     glm::vec3 origin = glm::vec3(0.0f);
                     glm::vec3 direction = point + glm::vec3(x * pixelSize / mSampleSide, y * pixelSize / mSampleSide, 0.0f);
-                    if (mMode == RenderingMode::NORMALS || mMode == RenderingMode::POINT_SOURCES) {
+                    if (mMode == RenderingMode::NORMALS) {
                         float minTValue = std::numeric_limits<float>::infinity();
                         glm::vec3 intersectionPoint = glm::vec3(0.0f);
                         glm::vec3 intersectionNormal = glm::vec3(0.0f);
-                        glm::vec3 albedo = glm::vec3(0.0f);
                         bool hit = false;
                         for (Object *obj : mObjects) {
                             if (obj->intersectRay(origin, direction, mImagePlane, minTValue)) {
                                 minTValue = obj->getTValue();
                                 intersectionPoint = obj->getIntersectionPoint();
                                 intersectionNormal = obj->getIntersectionNormal();
-                                ShapeType shape = obj->getShape();
-                                switch (shape) {
-                                    case ShapeType::SPHERE:
-                                        albedo = static_cast<DiffuseSphere*>(obj)->getAlbedo();
-                                        break;
-                                    case ShapeType::PLANE:
-                                        albedo = static_cast<DiffusePlane*>(obj)->getAlbedo();
-                                        break;
-                                    default:
-                                        albedo = static_cast<DiffuseBox*>(obj)->getAlbedo();
-                                        break;
-                                }
                                 hit = true;
                             }
                         }
                         if (hit) {
-                            if (mMode == RenderingMode::NORMALS) {
-                                mCBuffer[i][j][x][y] = glm::vec4(0.5f * (intersectionNormal + 1.0f), 1.0f);
-                            } else {
-                                glm::vec3 irradiance(0.0f);
-                                for (PointSource *pointSource : mPointSources) {
-                                    glm::vec3 shadowOrigin = intersectionPoint;
-                                    glm::vec3 shadowDirection = pointSource->getCameraCoordinate() - shadowOrigin;
-                                    hit = false;
-                                    for (Object *obj : mObjects) {
-                                        if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, 1)) {
-                                            hit = true;
-                                            break;
-                                        }
-                                    }
-                                    if (hit) {
-                                        continue;
-                                    }
-                                    irradiance += pointSource->getIrradiance(intersectionPoint, intersectionNormal);
-                                }
-                                mCBuffer[i][j][x][y] = glm::max(glm::min(glm::vec4((albedo * irradiance) / glm::pi<float>(), 1.0f), glm::vec4(1.0f)), 0.0f);
-                                if (mGammaCorrection) {
-                                    applyGammaCorrection(mCBuffer[i][j][x][y]);
-                                }
-                            }
+                            mCBuffer[i][j][x][y] = glm::vec4(0.5f * (intersectionNormal + 1.0f), 1.0f);
                         } else {
-                            mCBuffer[i][j][x][y] = glm::vec4(glm::vec3(0.0f), 1.0f);
+                            mCBuffer[i][j][x][y] = glm::vec4(mSkyColor, 1.0f);
                         }
-                    } else if (mMode == RenderingMode::RAY_TRACING) {
-                        // add code for ray tracing metallic/transparent materials
+                    } else if (mMode == RenderingMode::POINT_SOURCES) {
                         glm::vec3 radiance = incidentRadiance(origin, direction, 0);
                         mCBuffer[i][j][x][y] = glm::max(glm::min(glm::vec4(radiance, 1.0f), glm::vec4(1.0f)), glm::vec4(0.0f));
                         if (mGammaCorrection) {
@@ -469,8 +421,8 @@ void RayTracer::setSkyColor(glm::vec3 skyColor) {
     mSkyColor = skyColor;
 }
 
-void RayTracer::setAmbientLight(glm::vec3 ambientLight) {
-    mAmbientLight = ambientLight;
+void RayTracer::setAmbientRadiance(glm::vec3 ambientRadiance) {
+    mAmbientRadiance = ambientRadiance;
 }
 
 bool RayTracer::setFrameWidth(int frameWidth) {

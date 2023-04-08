@@ -17,10 +17,9 @@ template <typename T>
 using array2D = std::vector<std::vector<T>>;
 
 enum RenderingMode {
-    NORMALS,        // diffuse objects only
-    POINT_SOURCES,  // diffuses objects and point sources only
-    RAY_TRACING,    // metallic/transparent objects and area light sources
-    PATH_TRACING,   // diffuse/metallic/transparent objects and area light sources
+    NORMALS,        // no light sources
+    POINT_SOURCES,  // ray-tracing supported only for metallic/transparent materials
+    AREA_SOURCES,   // path-tracing supported for all three material types
 };
 
 class RayTracer {
@@ -33,7 +32,7 @@ class RayTracer {
         bool mGammaCorrection;
         int mRecursionDepth;
         glm::vec3 mSkyColor;
-        glm::vec3 mAmbientLight;
+        glm::vec3 mAmbientRadiance;
         int mFrameWidth;
         int mFrameHeight;
         int mDisplayScale;
@@ -64,7 +63,7 @@ class RayTracer {
         void enableGammaCorrection();
         void disableGammaCorrection();
         void applyGammaCorrection(glm::vec4&);
-        glm::vec3 incidentRadiance(glm::vec3, glm::vec3, int, bool = false);
+        glm::vec3 incidentRadiance(glm::vec3, glm::vec3, int);
         void addPointSource(PointSource*);
         void addObject(Object*);
         bool shouldQuit();
@@ -81,7 +80,7 @@ class RayTracer {
         int getScreenHeight();
         void setRecursionDepth(int);
         void setSkyColor(glm::vec3);
-        void setAmbientLight(glm::vec3);
+        void setAmbientRadiance(glm::vec3);
         bool setFrameWidth(int);
         bool setFrameHeight(int);
         bool setDisplayScale(int);

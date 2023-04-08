@@ -11,6 +11,7 @@ class Plane : public Object {
         Plane(MaterialType, glm::mat4 = glm::mat4(1.0f), glm::mat4 = glm::mat4(1.0f));
         void setPoint(glm::vec3);
         void setNormal(glm::vec3);
+        bool isInside(glm::vec3);
         bool intersectRay(glm::vec3, glm::vec3, float, float);
 };
 

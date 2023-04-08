@@ -11,6 +11,7 @@ class Sphere : public Object {
         Sphere(MaterialType, glm::mat4 = glm::mat4(1.0f), glm::mat4 = glm::mat4(1.0f));
         void setCenter(glm::vec3);
         void setRadius(float);
+        bool isInside(glm::vec3);
         bool intersectRay(glm::vec3, glm::vec3, float, float);
 };
 
@@ -48,11 +49,13 @@ class MetallicSphere : public Sphere {
 
 class TransparentSphere : public Sphere {
     private:
-        float mRefractiveIndex;
+        float mInternalRefractiveIndex, mExternalRefractiveIndex;
     public:
         TransparentSphere(glm::mat4 = glm::mat4(1.0f), glm::mat4 = glm::mat4(1.0f));
-        void setRefractiveIndex(float);
-        float getRefractiveIndex();
+        void setInternalRefractiveIndex(float);
+        void setExternalRefractiveIndex(float);
+        float getInternalRefractiveIndex();
+        float getExternalRefractiveIndex();
         float getFresnelConstant(float, float);
         float getFresnelCoefficient(float, float, glm::vec3, glm::vec3);
         glm::vec3 getReflectedRayDirection(glm::vec3, glm::vec3);

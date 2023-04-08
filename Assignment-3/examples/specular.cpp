@@ -5,7 +5,7 @@
 int main() {
     int frameWidth = 640, frameHeight = 480;
     int displayScale = 1, sampleCount = 1;
-    RayTracer r(RenderingMode::RAY_TRACING, &frameWidth, &frameHeight, &displayScale, &sampleCount);
+    RayTracer r(RenderingMode::POINT_SOURCES, &frameWidth, &frameHeight, &displayScale, &sampleCount);
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
@@ -19,9 +19,8 @@ int main() {
     TransparentSphere s2;
     s2.setCenter(glm::vec3(0.0f, 0.0f, 0.0f));
     s2.setRadius(1.0f);
-    s2.setRefractiveIndex(1);
-    // s2.setAlbedo(glm::vec3(192) / 800.0f);
-    // s2.setFresnelConstant(glm::vec3(0.3, 0.3, 0.3));
+    s2.setInternalRefractiveIndex(1);
+    s2.setExternalRefractiveIndex(1);
     MetallicPlane p;
     p.setPoint(glm::vec3(0.0f, -1.2f, 0.0f));
     p.setNormal(glm::vec3(0.0f, 1.0f, 0.0f));
