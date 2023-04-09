@@ -16,10 +16,7 @@ int main() {
     r.addObject(&s[0]);
     r.addObject(&s[1]);
     r.calibrateCamera(90.0f, 1.0f, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    while (!r.shouldQuit()) {
-        r.clearBuffer(glm::vec4(1.0f));
-        r.traceRays();
-        r.show();
-    }
+    r.clearBuffer(glm::vec4(1.0f));
+    r.traceRays();
     return EXIT_SUCCESS;
 }

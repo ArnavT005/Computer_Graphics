@@ -4,12 +4,13 @@
 
 int main() {
     int frameWidth = 640, frameHeight = 480;
-    int displayScale = 1, sampleCount = 1;
-    RayTracer r(RenderingMode::POINT_SOURCES, &frameWidth, &frameHeight, &displayScale, &sampleCount);
+    int displayScale = 1, sampleCount = 100;
+    RayTracer r(RenderingMode::AREA_SOURCES, &frameWidth, &frameHeight, &displayScale, &sampleCount);
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
-    r.setRecursionDepth(7);
+    r.setRecursionDepth(50);
+    r.setSaveInterval(10);
     MetallicSphere s;
     s.setCenter(glm::vec3(0.0f, 0.0f, -2.5f));
     s.setRadius(1.0f);
@@ -18,7 +19,7 @@ int main() {
     TransparentSphere s2;
     s2.setCenter(glm::vec3(0.0f, 0.0f, 0.0f));
     s2.setRadius(1.0f);
-    s2.setInternalRefractiveIndex(1);
+    s2.setInternalRefractiveIndex(1.5);
     s2.setExternalRefractiveIndex(1);
     MetallicPlane p;
     p.setPoint(glm::vec3(0.0f, -1.2f, 0.0f));

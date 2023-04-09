@@ -188,57 +188,21 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
         return radiance;
     }
     if (material == MaterialType::METALLIC) {
-        glm::vec3 radiance(0.0f);
-        glm::vec3 albedo(0.0f);
         glm::vec3 fresnelCoefficient(0);
-        switch (shape) {
-            case ShapeType::SPHERE:
-                albedo = static_cast<MetallicSphere*>(object)->getAlbedo();
-                if (depth >= mRecursionDepth) {
-                    break;
-                }
-                fresnelCoefficient = static_cast<MetallicSphere*>(object)->getFresnelCoefficient(direction, intersectionNormal);
-                radiance += fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicSphere*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
-                break;
-            case ShapeType::PLANE:
-                albedo = static_cast<MetallicPlane*>(object)->getAlbedo();
-                if (depth >= mRecursionDepth) {
-                    break;
-                }
-                fresnelCoefficient = static_cast<MetallicPlane*>(object)->getFresnelCoefficient(direction, intersectionNormal);
-                radiance += fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicPlane*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
-                break;
-            default:
-                albedo = static_cast<MetallicBox*>(object)->getAlbedo();
-                if (depth >= mRecursionDepth) {
-                    break;
-                }
-                fresnelCoefficient = static_cast<MetallicBox*>(object)->getFresnelCoefficient(direction, intersectionNormal);
-                radiance += fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicBox*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
-        }
-        radiance += (1.0f - fresnelCoefficient) * (albedo * mAmbientRadiance);
-        glm::vec3 irradiance(0.0f);
-        bool shadow = false;
-        for (PointSource *pointSource : mPointSources) {
-            glm::vec3 shadowOrigin = intersectionPoint;
-            glm::vec3 shadowDirection = pointSource->getCameraCoordinate() - shadowOrigin;
-            shadow = false;
-            for (Object *obj : mObjects) {
-                if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, 1)) {
-                    if (obj->getMaterial() == MaterialType::TRANSPARENT) {
-                        continue;
-                    }
-                    shadow = true;
-                    break;
-                }
+        if (depth < mRecursionDepth) {
+            switch (shape) {
+                case ShapeType::SPHERE:
+                    fresnelCoefficient = static_cast<MetallicSphere*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                    return fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicSphere*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
+                case ShapeType::PLANE:
+                    fresnelCoefficient = static_cast<MetallicPlane*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                    return fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicPlane*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
+                default:
+                    fresnelCoefficient = static_cast<MetallicBox*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                    return fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicBox*>(object)->getReflectedRayDirection(direction, intersectionNormal), depth + 1);
             }
-            if (shadow) {
-                continue;
-            }
-            irradiance += pointSource->getIrradiance(intersectionPoint, intersectionNormal);
         }
-        radiance += (1.0f - fresnelCoefficient) * (albedo * irradiance) / glm::pi<float>();
-        return radiance;
+        return glm::vec3(0.0f);
     }
     glm::vec3 reflectedRadiance(0.0f), refractedRadiance(0.0f);
     float fresnelCoefficient, insideRefractiveIndex, outsideRefractiveIndex;
@@ -270,7 +234,7 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
             refractedRayDirection = static_cast<TransparentBox*>(object)->getRefractedRayDirection(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
     }
     if (depth >= mRecursionDepth) {
-        return mSkyColor;
+        return glm::vec3(0.0f);
     }
     reflectedRadiance = fresnelCoefficient * incidentRadiance(intersectionPoint, reflectedRayDirection, depth + 1);
     direction = glm::normalize(direction);
@@ -331,19 +295,15 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, flo
         return (albedo * incidentRadiance(intersectionPoint, sampleDirection, 0.001f)) / continuationProbability;
     }
     if (material == MaterialType::METALLIC) {
-        glm::vec3 albedo(0.0f);
         glm::vec3 fresnelCoefficient(0);
         switch (shape) {
             case ShapeType::SPHERE:
-                albedo = static_cast<MetallicSphere*>(object)->getAlbedo();
                 fresnelCoefficient = static_cast<MetallicSphere*>(object)->getFresnelCoefficient(direction, intersectionNormal);
                 break;
             case ShapeType::PLANE:
-                albedo = static_cast<MetallicPlane*>(object)->getAlbedo();
                 fresnelCoefficient = static_cast<MetallicPlane*>(object)->getFresnelCoefficient(direction, intersectionNormal);
                 break;
             default:
-                albedo = static_cast<MetallicBox*>(object)->getAlbedo();
                 fresnelCoefficient = static_cast<MetallicBox*>(object)->getFresnelCoefficient(direction, intersectionNormal);
         }
         return (fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicSphere*>(object)->getReflectedRayDirection(direction, intersectionNormal), 0.001f)) / continuationProbability;
