@@ -12,6 +12,7 @@
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/random.hpp>
 
 template <typename T>
 using array2D = std::vector<std::vector<T>>;
@@ -33,6 +34,7 @@ class RayTracer {
         int mRecursionDepth;
         glm::vec3 mSkyColor;
         glm::vec3 mAmbientRadiance;
+        int mSaveInterval;
         int mFrameWidth;
         int mFrameHeight;
         int mDisplayScale;
@@ -64,6 +66,8 @@ class RayTracer {
         void disableGammaCorrection();
         void applyGammaCorrection(glm::vec4&);
         glm::vec3 incidentRadiance(glm::vec3, glm::vec3, int);
+        glm::vec3 incidentRadiance(glm::vec3, glm::vec3, float);      
+        glm::vec3 sampleHemisphereCosine(glm::vec3, glm::vec3);
         void addPointSource(PointSource*);
         void addObject(Object*);
         bool shouldQuit();
@@ -81,6 +85,7 @@ class RayTracer {
         void setRecursionDepth(int);
         void setSkyColor(glm::vec3);
         void setAmbientRadiance(glm::vec3);
+        void setSaveInterval(int);
         bool setFrameWidth(int);
         bool setFrameHeight(int);
         bool setDisplayScale(int);

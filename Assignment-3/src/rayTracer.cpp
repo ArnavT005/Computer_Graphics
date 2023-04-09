@@ -13,6 +13,7 @@ RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, in
     mRecursionDepth = 0;
     mSkyColor = glm::vec3(1.0f);
     mAmbientRadiance = glm::vec3(0.1f);
+    mSaveInterval = 5;
     mFrameWidth = pFrameWidth ? *pFrameWidth : FRAME_WIDTH;
     mFrameHeight = pFrameHeight ? *pFrameHeight : FRAME_HEIGHT;
     mDisplayScale = pDisplayScale ? *pDisplayScale : DISPLAY_SCALE;
@@ -280,6 +281,121 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
     return reflectedRadiance + refractedRadiance;
 }
 
+glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, float bias) {
+    float minTValue = std::numeric_limits<float>::infinity();
+    glm::vec3 intersectionPoint = glm::vec3(0.0f);
+    glm::vec3 intersectionNormal = glm::vec3(0.0f);
+    Object *object = nullptr;
+    float tMin = bias; 
+    bool hit = false;
+    for (Object *obj : mObjects) {
+        if (obj->intersectRay(origin, direction, tMin, minTValue)) {
+            minTValue = obj->getTValue();
+            intersectionPoint = obj->getIntersectionPoint();
+            intersectionNormal = obj->getIntersectionNormal();
+            object = obj;
+            hit = true;
+        }
+    }
+    if (!hit) {
+        return mSkyColor;
+    }
+    ShapeType shape = object->getShape();
+    MaterialType material = object->getMaterial();
+    if (material == MaterialType::LIGHT) {
+        switch (shape) {
+            case ShapeType::SPHERE:
+                return static_cast<SphereSource*>(object)->getRadiance();
+            default:
+                return static_cast<BoxSource*>(object)->getRadiance();
+        }
+    }
+    float eps = glm::linearRand(0.0f, 1.0f);
+    float continuationProbability = 1.0f - 1.0f / (mRecursionDepth + 1);
+    if ((mRecursionDepth + 1) * eps < 1.0f) {
+        return glm::vec3(0.0f);
+    }
+    if (material == MaterialType::DIFFUSE) {
+        glm::vec3 albedo(0.0f);
+        glm::vec3 sampleDirection = sampleHemisphereCosine(intersectionPoint, intersectionNormal);
+        switch (shape) {
+            case ShapeType::SPHERE:
+                albedo = static_cast<DiffuseSphere*>(object)->getAlbedo();
+                break;
+            case ShapeType::PLANE:
+                albedo = static_cast<DiffusePlane*>(object)->getAlbedo();
+                break;
+            default:
+                albedo = static_cast<DiffuseBox*>(object)->getAlbedo();
+        }
+        return (albedo * incidentRadiance(intersectionPoint, sampleDirection, 0.001f)) / continuationProbability;
+    }
+    if (material == MaterialType::METALLIC) {
+        glm::vec3 albedo(0.0f);
+        glm::vec3 fresnelCoefficient(0);
+        switch (shape) {
+            case ShapeType::SPHERE:
+                albedo = static_cast<MetallicSphere*>(object)->getAlbedo();
+                fresnelCoefficient = static_cast<MetallicSphere*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                break;
+            case ShapeType::PLANE:
+                albedo = static_cast<MetallicPlane*>(object)->getAlbedo();
+                fresnelCoefficient = static_cast<MetallicPlane*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+                break;
+            default:
+                albedo = static_cast<MetallicBox*>(object)->getAlbedo();
+                fresnelCoefficient = static_cast<MetallicBox*>(object)->getFresnelCoefficient(direction, intersectionNormal);
+        }
+        return (fresnelCoefficient * incidentRadiance(intersectionPoint, static_cast<MetallicSphere*>(object)->getReflectedRayDirection(direction, intersectionNormal), 0.001f)) / continuationProbability;
+    }
+    float fresnelCoefficient, insideRefractiveIndex, outsideRefractiveIndex;
+    glm::vec3 reflectedRayDirection, refractedRayDirection;
+    bool inside = object->getInside();
+    switch (shape) {
+        case ShapeType::SPHERE:
+            if (inside) {
+                outsideRefractiveIndex = static_cast<TransparentSphere*>(object)->getInternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentSphere*>(object)->getExternalRefractiveIndex();
+            } else {
+                outsideRefractiveIndex = static_cast<TransparentSphere*>(object)->getExternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentSphere*>(object)->getInternalRefractiveIndex();
+            }
+            fresnelCoefficient = static_cast<TransparentSphere*>(object)->getFresnelCoefficient(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
+            reflectedRayDirection = static_cast<TransparentSphere*>(object)->getReflectedRayDirection(direction, intersectionNormal);
+            refractedRayDirection = static_cast<TransparentSphere*>(object)->getRefractedRayDirection(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
+            break;
+        default:
+            if (inside) {
+                outsideRefractiveIndex = static_cast<TransparentBox*>(object)->getInternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentBox*>(object)->getExternalRefractiveIndex();
+            } else {
+                outsideRefractiveIndex = static_cast<TransparentBox*>(object)->getExternalRefractiveIndex();
+                insideRefractiveIndex = static_cast<TransparentBox*>(object)->getInternalRefractiveIndex();
+            }
+            fresnelCoefficient = static_cast<TransparentBox*>(object)->getFresnelCoefficient(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
+            reflectedRayDirection = static_cast<TransparentBox*>(object)->getReflectedRayDirection(direction, intersectionNormal);
+            refractedRayDirection = static_cast<TransparentBox*>(object)->getRefractedRayDirection(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
+    }
+    eps = glm::linearRand(0.0f, 1.0f);
+    if (eps < fresnelCoefficient) {
+        return incidentRadiance(intersectionPoint, reflectedRayDirection, 0.001f) / continuationProbability;
+    }
+    if (refractedRayDirection == glm::vec3(0)) {
+       return glm::vec3(0.0f);
+    }
+    return incidentRadiance(intersectionPoint, refractedRayDirection, 0.001f) / continuationProbability;
+}
+
+glm::vec3 RayTracer::sampleHemisphereCosine(glm::vec3 point, glm::vec3 normal) {
+    float eps[2];
+    eps[0] = glm::linearRand(0.0f, 1.0f);
+    eps[1] = glm::linearRand(0.0f, 1.0f);
+    normal = glm::normalize(normal);
+    glm::vec3 e1 = glm::normalize(glm::vec3(-normal.y, normal.x, 0));
+    glm::vec3 e2 = glm::normalize(glm::cross(normal, e1));
+    return glm::normalize(glm::sqrt(eps[0]) * (glm::cos(2.0f * glm::pi<float>() * eps[1]) * e1 + glm::sin(2.0f * glm::pi<float>() * eps[1]) * e2) + glm::sqrt(1 - eps[0]) * normal);
+}
+
 void RayTracer::addPointSource(PointSource *pointSource) {
     mPointSources.push_back(pointSource);
 }
@@ -294,11 +410,18 @@ bool RayTracer::shouldQuit() {
 
 void RayTracer::traceRays() {
     float pixelSize = 2 * mImagePlane * glm::tan(glm::radians(mVerticalFOV / 2)) / mFrameHeight;
-    for (int i = 0; i < mFrameHeight; i ++) {
-        for (int j = 0; j < mFrameWidth; j ++) {
-            glm::vec3 point = glm::vec3(pixelSize * (2 * j - mFrameWidth + 1 / mSampleSide) / 2, pixelSize * (mFrameHeight - 2 * i - 1 / mSampleSide) / 2, -1.0f);
-            for (int x = 0; x < mSampleSide; x ++) {
-                for (int y = 0; y < mSampleSide; y ++) {
+    int sampleCount = 0;
+    array2D<glm::vec4> color;
+    color.resize(mCBuffer.size());
+    for (int i = 0; i < color.size(); i ++) {
+        color[i].resize(mCBuffer[i].size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    }
+    for (int x = 0; x < mSampleSide; x ++) {
+        for (int y = 0; y < mSampleSide; y ++) {
+            sampleCount ++;
+            for (int i = 0; i < mFrameHeight; i ++) {
+                for (int j = 0; j < mFrameWidth; j ++) {
+                    glm::vec3 point = glm::vec3(pixelSize * (2 * j - mFrameWidth + 1 / mSampleSide) / 2, pixelSize * (mFrameHeight - 2 * i - 1 / mSampleSide) / 2, -1.0f);
                     glm::vec3 origin = glm::vec3(0.0f);
                     glm::vec3 direction = point + glm::vec3(x * pixelSize / mSampleSide, y * pixelSize / mSampleSide, 0.0f);
                     if (mMode == RenderingMode::NORMALS) {
@@ -326,12 +449,35 @@ void RayTracer::traceRays() {
                             applyGammaCorrection(mCBuffer[i][j][x][y]);
                         }
                     } else {
-                        // add code for path tracing diffuse/metallic/transparent materials
+                        glm::vec3 radiance = incidentRadiance(origin, direction, mImagePlane);
+                        mCBuffer[i][j][x][y] = glm::max(glm::min(glm::vec4(radiance, 1.0f), glm::vec4(1.0f)), glm::vec4(0.0f));
+                        if (mGammaCorrection) {
+                            applyGammaCorrection(mCBuffer[i][j][x][y]);
+                        }
+                    }
+                    color[i][j] = ((sampleCount - 1.0f) * color[i][j] + mCBuffer[i][j][x][y]) / (float) sampleCount;
+                }
+            }
+            if (sampleCount % mSaveInterval == 0) {
+                Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
+                SDL_PixelFormat *format = mPFramebuffer->format;
+                for (int i = 0; i < mFrameHeight; i ++) {
+                    for (int j = 0; j < mFrameWidth; j ++) {
+                        pixels[j + mFrameWidth * i] = SDL_MapRGBA(format, (Uint8) (color[i][j][0] * 255.0f), (Uint8) (color[i][j][1] * 255.0f), (Uint8) (color[i][j][2] * 255.0f), (Uint8) (color[i][j][3] * 255.0f));
                     }
                 }
+                IMG_SavePNG(mPFramebuffer, ("image_" + std::to_string(sampleCount) + "rpp.png").c_str());
             }
         }
     }
+    Uint32 *pixels = (Uint32*) mPFramebuffer->pixels;
+    SDL_PixelFormat *format = mPFramebuffer->format;
+    for (int i = 0; i < mFrameHeight; i ++) {
+        for (int j = 0; j < mFrameWidth; j ++) {
+            pixels[j + mFrameWidth * i] = SDL_MapRGBA(format, (Uint8) (color[i][j][0] * 255.0f), (Uint8) (color[i][j][1] * 255.0f), (Uint8) (color[i][j][2] * 255.0f), (Uint8) (color[i][j][3] * 255.0f));
+        }
+    }
+    IMG_SavePNG(mPFramebuffer, ("image_" + std::to_string(sampleCount) + "rpp.png").c_str());
 }
 
 void RayTracer::show() {
@@ -423,6 +569,10 @@ void RayTracer::setSkyColor(glm::vec3 skyColor) {
 
 void RayTracer::setAmbientRadiance(glm::vec3 ambientRadiance) {
     mAmbientRadiance = ambientRadiance;
+}
+
+void RayTracer::setSaveInterval(int saveInterval) {
+    mSaveInterval = saveInterval;
 }
 
 bool RayTracer::setFrameWidth(int frameWidth) {
