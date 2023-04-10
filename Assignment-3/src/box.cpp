@@ -11,6 +11,12 @@ void Box::setPoints(glm::vec3 minPoint, glm::vec3 maxPoint) {
 
 bool Box::isInside(glm::vec3 point) {
     // return true if point is inside the box, false otherwise
+    if (point.x >= mMinPoint.x && point.x <= mMaxPoint.x && 
+        point.y >= mMinPoint.y && point.y <= mMaxPoint.y && 
+        point.z >= mMinPoint.z && point.z <= mMaxPoint.z) {
+        return true;
+    }
+    return false;
 }
 
 bool Box::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
@@ -33,6 +39,13 @@ bool Box::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float 
     planes[5].setNormal(glm::vec3(1.0f, 0.0f, 0.0f));
     for (int i = 0; i < 6; i++) {
         if (planes[i].intersectRay(origin, direction, tMin, tMax)) {
+            // get mIntersectionPoint for this plane
+            mIntersectionPoint = planes[i].getIntersectionPoint();
+            // get mIntersectionNormal for this plane
+            mIntersectionNormal = planes[i].getIntersectionNormal();
+            // get mTValue for this plane
+            mTValue = planes[i].getTValue();
+
             return true;
         }
     }
