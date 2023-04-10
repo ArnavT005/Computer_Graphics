@@ -351,7 +351,12 @@ glm::vec3 RayTracer::sampleHemisphereCosine(glm::vec3 point, glm::vec3 normal) {
     eps[0] = glm::linearRand(0.0f, 1.0f);
     eps[1] = glm::linearRand(0.0f, 1.0f);
     normal = glm::normalize(normal);
-    glm::vec3 e1 = glm::normalize(glm::vec3(-normal.y, normal.x, 0));
+    glm::vec3 e1;
+    if (normal.x != 0 || normal.y != 0) {
+        e1 = glm::normalize(glm::vec3(-normal.y, normal.x, 0));
+    } else {
+        e1 = glm::vec3(1, 0, 0);
+    }
     glm::vec3 e2 = glm::normalize(glm::cross(normal, e1));
     return glm::normalize(glm::sqrt(eps[0]) * (glm::cos(2.0f * glm::pi<float>() * eps[1]) * e1 + glm::sin(2.0f * glm::pi<float>() * eps[1]) * e2) + glm::sqrt(1 - eps[0]) * normal);
 }
@@ -405,15 +410,9 @@ void RayTracer::traceRays() {
                     } else if (mMode == RenderingMode::POINT_SOURCES) {
                         glm::vec3 radiance = incidentRadiance(origin, direction, 0);
                         mCBuffer[i][j][x][y] = glm::max(glm::min(glm::vec4(radiance, 1.0f), glm::vec4(1.0f)), glm::vec4(0.0f));
-                        if (mGammaCorrection) {
-                            applyGammaCorrection(mCBuffer[i][j][x][y]);
-                        }
                     } else {
                         glm::vec3 radiance = incidentRadiance(origin, direction, mImagePlane);
                         mCBuffer[i][j][x][y] = glm::max(glm::min(glm::vec4(radiance, 1.0f), glm::vec4(1.0f)), glm::vec4(0.0f));
-                        if (mGammaCorrection) {
-                            applyGammaCorrection(mCBuffer[i][j][x][y]);
-                        }
                     }
                     color[i][j] = ((sampleCount - 1.0f) * color[i][j] + mCBuffer[i][j][x][y]) / (float) sampleCount;
                 }
@@ -423,7 +422,11 @@ void RayTracer::traceRays() {
                 SDL_PixelFormat *format = mPFramebuffer->format;
                 for (int i = 0; i < mFrameHeight; i ++) {
                     for (int j = 0; j < mFrameWidth; j ++) {
-                        pixels[j + mFrameWidth * i] = SDL_MapRGBA(format, (Uint8) (color[i][j][0] * 255.0f), (Uint8) (color[i][j][1] * 255.0f), (Uint8) (color[i][j][2] * 255.0f), (Uint8) (color[i][j][3] * 255.0f));
+                        glm::vec4 tempColor(color[i][j]);
+                        if (mGammaCorrection) {
+                            applyGammaCorrection(tempColor);
+                        }
+                        pixels[j + mFrameWidth * i] = SDL_MapRGBA(format, (Uint8) (tempColor[0] * 255.0f), (Uint8) (tempColor[1] * 255.0f), (Uint8) (tempColor[2] * 255.0f), (Uint8) (tempColor[3] * 255.0f));
                     }
                 }
                 IMG_SavePNG(mPFramebuffer, ("image_" + std::to_string(sampleCount) + "rpp.png").c_str());
@@ -434,7 +437,11 @@ void RayTracer::traceRays() {
     SDL_PixelFormat *format = mPFramebuffer->format;
     for (int i = 0; i < mFrameHeight; i ++) {
         for (int j = 0; j < mFrameWidth; j ++) {
-            pixels[j + mFrameWidth * i] = SDL_MapRGBA(format, (Uint8) (color[i][j][0] * 255.0f), (Uint8) (color[i][j][1] * 255.0f), (Uint8) (color[i][j][2] * 255.0f), (Uint8) (color[i][j][3] * 255.0f));
+            glm::vec4 tempColor(color[i][j]);
+            if (mGammaCorrection) {
+                applyGammaCorrection(tempColor);
+            }
+            pixels[j + mFrameWidth * i] = SDL_MapRGBA(format, (Uint8) (tempColor[0] * 255.0f), (Uint8) (tempColor[1] * 255.0f), (Uint8) (tempColor[2] * 255.0f), (Uint8) (tempColor[3] * 255.0f));
         }
     }
     IMG_SavePNG(mPFramebuffer, ("image_" + std::to_string(sampleCount) + "rpp.png").c_str());

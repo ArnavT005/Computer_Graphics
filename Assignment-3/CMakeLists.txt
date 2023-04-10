@@ -23,3 +23,6 @@ target_link_libraries(specular a3)
 
 add_executable(path_tracing examples/path_tracing.cpp)
 target_link_libraries(path_tracing a3)
+
+add_executable(cornell examples/cornell.cpp)
+target_link_libraries(cornell a3)
