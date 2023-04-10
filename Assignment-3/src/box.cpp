@@ -37,18 +37,31 @@ bool Box::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float 
     planes[4].setNormal(glm::vec3(-1.0f, 0.0f, 0.0f));
     planes[5].setPoint(glm::vec3(mMaxPoint.x, mMinPoint.y, mMinPoint.z));
     planes[5].setNormal(glm::vec3(1.0f, 0.0f, 0.0f));
+    mTValue = tMax;
     for (int i = 0; i < 6; i++) {
         if (planes[i].intersectRay(origin, direction, tMin, tMax)) {
+            glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
+            glm::vec3 transformedDirection(mRayTransform * glm::vec4(direction, 0.0f));
             // get mIntersectionPoint for this plane
             mIntersectionPoint = planes[i].getIntersectionPoint();
             // get mIntersectionNormal for this plane
             mIntersectionNormal = planes[i].getIntersectionNormal();
             // get mTValue for this plane
-            mTValue = planes[i].getTValue();
+            float mTValueTemp = planes[i].getTValue();
+            float normalSign = isInside(transformedOrigin + 0.001f * transformedDirection) ? -1 : 1;
 
-            return true;
+            // check if mIntersectionPoint is inside the box
+            if (isInside(mIntersectionPoint) and mTValueTemp < mTValue) {
+                mTValue = mTValueTemp;
+                // transform mIntersectionPoint and mIntersectionNormal
+                mIntersectionPoint = origin + mTValue * direction;
+                mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(transformedOrigin + mTValue * transformedDirection, 0.0f)));
+            }
+
         }
     }
+    if(mTValue < tMax)
+        return true;
     return false;
 }
 
