@@ -1,6 +1,7 @@
 #include "box.hpp"
 #include "plane.hpp"
 
+#include <iostream>
 Box::Box(MaterialType material, glm::mat4 transform, glm::mat4 worldToCamera) 
     : Object(ShapeType::BOX, material, transform, worldToCamera) {}
 
@@ -10,12 +11,8 @@ void Box::setPoints(glm::vec3 minPoint, glm::vec3 maxPoint) {
 }
 
 bool Box::isInside(glm::vec3 point) {
-    if (point.x >= mMinPoint.x && point.x <= mMaxPoint.x && 
-        point.y >= mMinPoint.y && point.y <= mMaxPoint.y && 
-        point.z >= mMinPoint.z && point.z <= mMaxPoint.z) {
-        return true;
-    }
-    return false;
+    float bias = 0.000001;
+    return (point.x >= (mMinPoint.x - bias) && point.x <= (mMaxPoint.x + bias) && point.y >= (mMinPoint.y - bias) && point.y <= (mMaxPoint.y + bias) && point.z >= (mMinPoint.z - bias) && point.z <= (mMaxPoint.z + bias));
 }
 
 bool Box::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float tMax) {
@@ -41,7 +38,7 @@ bool Box::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float 
         if (planes[i].intersectRay(transformedOrigin, transformedDirection, tMin, mTValue)) {
             if (isInside(planes[i].getIntersectionPoint())) {
                 mTValue = planes[i].getTValue();
-                mIntersectionPoint = planes[i].getIntersectionPoint();
+                mIntersectionPoint = origin + mTValue * direction;
                 mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(planes[i].getIntersectionNormal(), 0.0f)));
                 found = true;
             }

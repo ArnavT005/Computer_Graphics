@@ -405,7 +405,7 @@ void RayTracer::traceRays() {
                         if (hit) {
                             mCBuffer[i][j][x][y] = glm::vec4(0.5f * (intersectionNormal + 1.0f), 1.0f);
                         } else {
-                            mCBuffer[i][j][x][y] = glm::vec4(mSkyColor, 1.0f);
+                            mCBuffer[i][j][x][y] = glm::vec4(glm::vec3(0), 1.0f);
                         }
                     } else if (mMode == RenderingMode::POINT_SOURCES) {
                         glm::vec3 radiance = incidentRadiance(origin, direction, 0);

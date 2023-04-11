@@ -12,11 +12,14 @@ find_package(SDL2_image REQUIRED)
 add_library(a3 src/rayTracer.cpp src/object.cpp src/sphere.cpp src/plane.cpp src/box.cpp src/pointSource.cpp)
 target_link_libraries(a3 GLEW::GLEW glm::glm OpenGL::GL SDL2::SDL2 SDL2_image::SDL2_image)
 
-add_executable(spheres examples/spheres.cpp)
-target_link_libraries(spheres a3)
+add_executable(s1 examples/s1.cpp)
+target_link_libraries(s1 a3)
 
-add_executable(sphere_plane examples/sphere_plane.cpp)
-target_link_libraries(sphere_plane a3)
+add_executable(s2 examples/s2.cpp)
+target_link_libraries(s2 a3)
+
+add_executable(s3 examples/s3.cpp)
+target_link_libraries(s3 a3)
 
 add_executable(specular examples/specular.cpp)
 target_link_libraries(specular a3)

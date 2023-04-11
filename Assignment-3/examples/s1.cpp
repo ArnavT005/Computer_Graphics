@@ -15,7 +15,7 @@ int main() {
     s[1].setRadius(100.0f);
     r.addObject(&s[0]);
     r.addObject(&s[1]);
-    r.calibrateCamera(90.0f, 1.0f, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    r.calibrateCamera(60.0f, 1.0f, glm::vec3(0, 0, 4), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     r.clearBuffer(glm::vec4(1.0f));
     r.traceRays();
     return EXIT_SUCCESS;
