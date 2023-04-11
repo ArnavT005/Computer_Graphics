@@ -10,6 +10,7 @@ const int RayTracer::SAMPLE_SIDE;
 RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, int *pDisplayScale, int *pSampleCount) {
     mMode = mode;
     mGammaCorrection = false;
+    mIgnoreTransparent = false;
     mRecursionDepth = 0;
     mSkyColor = glm::vec3(1.0f);
     mAmbientRadiance = glm::vec3(0);
@@ -103,6 +104,14 @@ void RayTracer::calibrateCamera(float verticalFOV, float imagePlane, glm::vec3 c
     }
 }
 
+void RayTracer::enableShadowTransparency() {
+    mIgnoreTransparent = true;
+}
+
+void RayTracer::disableShadowTransparency() {
+    mIgnoreTransparent = false;
+}
+
 void RayTracer::enableGammaCorrection() {
     mGammaCorrection = true;
 }
@@ -172,7 +181,7 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, int
             shadow = false;
             for (Object *obj : mObjects) {
                 if (obj->intersectRay(shadowOrigin, shadowDirection, 0.001, 1)) {
-                    if (obj->getMaterial() == MaterialType::TRANSPARENT) {
+                    if (mIgnoreTransparent && obj->getMaterial() == MaterialType::TRANSPARENT) {
                         continue;
                     }
                     shadow = true;

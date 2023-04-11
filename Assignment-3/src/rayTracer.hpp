@@ -31,6 +31,7 @@ class RayTracer {
         static const int SAMPLE_SIDE = 1;
         RenderingMode mMode;
         bool mGammaCorrection;
+        bool mIgnoreTransparent;
         int mRecursionDepth;
         glm::vec3 mSkyColor;
         glm::vec3 mAmbientRadiance;
@@ -62,6 +63,8 @@ class RayTracer {
         bool initializeSDL(std::string = "Assignment 3");
         void terminateSDL();
         void calibrateCamera(float, float, glm::vec3, glm::vec3, glm::vec3);
+        void enableShadowTransparency();
+        void disableShadowTransparency();
         void enableGammaCorrection();
         void disableGammaCorrection();
         void applyGammaCorrection(glm::vec4&);

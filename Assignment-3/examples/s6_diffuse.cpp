@@ -10,6 +10,7 @@ int main() {
         return EXIT_FAILURE;
     }
     r.setRecursionDepth(20);
+    r.enableShadowTransparency();
     r.enableGammaCorrection();
     DiffusePlane p[5];
     p[0].setPoint(glm::vec3(0, -3, 0));
