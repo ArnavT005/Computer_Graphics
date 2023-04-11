@@ -9,7 +9,6 @@ int main() {
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
-    r.setAmbientRadiance(glm::vec3(0));
     DiffuseSphere s;
     s.setCenter(glm::vec3(0.0f, 0.0f, -2.0f));
     s.setRadius(1.0f);

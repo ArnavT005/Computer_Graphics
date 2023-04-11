@@ -15,11 +15,11 @@ int main() {
     s.setCenter(glm::vec3(0.0f, 0.0f, -2.5f));
     s.setRadius(1.0f);
     s.setTransform(glm::scale(glm::mat4(1.0f), glm::vec3(4, 1, 1)));
-    s.setFresnelConstant(glm::vec3(180, 40, 29) / 255.0f);
+    s.setFresnelConstant(glm::vec3(184, 100, 51) / 255.0f);
     TransparentSphere s2;
     s2.setCenter(glm::vec3(0.0f, 0.0f, 0.0f));
     s2.setRadius(1.0f);
-    s2.setInternalRefractiveIndex(1.2);
+    s2.setInternalRefractiveIndex(1.5);
     s2.setExternalRefractiveIndex(1);
     MetallicPlane p;
     p.setPoint(glm::vec3(0.0f, -1.2f, 0.0f));
@@ -28,7 +28,8 @@ int main() {
     r.addObject(&s);
     r.addObject(&s2);
     r.addObject(&p);
-    r.calibrateCamera(60.0f, 1.0f, glm::vec3(0.0f, 0.0f, 4.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    r.calibrateCamera(90.0f, 1.0f, glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    // r.calibrateCamera(60.0f, 1.0f, glm::vec3(-5.0f, 0.0f, 4.0f), glm::vec3(4.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     r.clearBuffer(glm::vec4(1.0f));
     r.traceRays();
     return EXIT_SUCCESS;

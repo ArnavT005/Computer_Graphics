@@ -24,8 +24,8 @@ target_link_libraries(s3 a3)
 add_executable(s5 examples/s5.cpp)
 target_link_libraries(s5 a3)
 
-add_executable(specular examples/specular.cpp)
-target_link_libraries(specular a3)
+add_executable(s6 examples/s6.cpp)
+target_link_libraries(s6 a3)
 
 add_executable(path_tracing examples/path_tracing.cpp)
 target_link_libraries(path_tracing a3)

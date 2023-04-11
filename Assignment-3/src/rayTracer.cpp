@@ -12,7 +12,7 @@ RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, in
     mGammaCorrection = false;
     mRecursionDepth = 0;
     mSkyColor = glm::vec3(1.0f);
-    mAmbientRadiance = glm::vec3(0.1f);
+    mAmbientRadiance = glm::vec3(0);
     mSaveInterval = 5;
     mFrameWidth = pFrameWidth ? *pFrameWidth : FRAME_WIDTH;
     mFrameHeight = pFrameHeight ? *pFrameHeight : FRAME_HEIGHT;
