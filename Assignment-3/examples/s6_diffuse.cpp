@@ -10,7 +10,7 @@ int main() {
         return EXIT_FAILURE;
     }
     r.setRecursionDepth(20);
-    r.setSaveInterval(5);
+    r.enableGammaCorrection();
     DiffusePlane p[5];
     p[0].setPoint(glm::vec3(0, -3, 0));
     p[0].setNormal(glm::vec3(0, 1, 0));

@@ -27,8 +27,8 @@ target_link_libraries(s5 a3)
 add_executable(s6 examples/s6.cpp)
 target_link_libraries(s6 a3)
 
-add_executable(path_tracing examples/path_tracing.cpp)
-target_link_libraries(path_tracing a3)
+add_executable(s6_diffuse examples/s6_diffuse.cpp)
+target_link_libraries(s6_diffuse a3)
 
-add_executable(specular_diffuse examples/specular_diffuse.cpp)
-target_link_libraries(specular_diffuse a3)
+# add_executable(path_tracing examples/path_tracing.cpp)
+# target_link_libraries(path_tracing a3)
