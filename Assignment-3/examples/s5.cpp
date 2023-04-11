@@ -9,6 +9,7 @@ int main() {
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
+    r.enableGammaCorrection();
     r.setAmbientRadiance(glm::vec3(0));
     DiffuseSphere s;
     s.setCenter(glm::vec3(0.0f, 0.0f, -2.0f));
@@ -33,8 +34,8 @@ int main() {
     PointSource source[2];
     source[0].setCoordinate(glm::vec3(0, 5, -2));
     source[0].setIntensity(glm::vec3(50));
-    source[1].setCoordinate(glm::vec3(0, 0, 100));
-    source[1].setIntensity(glm::vec3(1000000));
+    source[1].setCoordinate(glm::vec3(0, 0, 5));
+    source[1].setIntensity(glm::vec3(50));
     r.addPointSource(&source[0]);
     r.addPointSource(&source[1]);
     r.calibrateCamera(60.0f, 1.0f, glm::vec3(0, 0, 4), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
