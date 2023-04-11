@@ -30,5 +30,8 @@ target_link_libraries(s6 a3)
 add_executable(s6_diffuse examples/s6_diffuse.cpp)
 target_link_libraries(s6_diffuse a3)
 
+add_executable(s7 examples/s7.cpp)
+target_link_libraries(s7 a3)
+
 # add_executable(path_tracing examples/path_tracing.cpp)
 # target_link_libraries(path_tracing a3)
