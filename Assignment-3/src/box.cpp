@@ -19,32 +19,66 @@ bool Box::intersectRay(glm::vec3 origin, glm::vec3 direction, float tMin, float 
     glm::vec3 transformedOrigin(mRayTransform * glm::vec4(origin, 1.0f));
     glm::vec3 transformedDirection(mRayTransform * glm::vec4(direction, 0.0f));
     float normalSign = isInside(transformedOrigin + 0.001f * transformedDirection) ? -1 : 1;
-    DiffusePlane planes[6];
-    planes[0].setPoint(glm::vec3(mMinPoint.x, mMinPoint.y, mMinPoint.z));
-    planes[0].setNormal(glm::vec3(0.0f, 0.0f, -1.0f));
-    planes[1].setPoint(glm::vec3(mMinPoint.x, mMinPoint.y, mMaxPoint.z));
-    planes[1].setNormal(glm::vec3(0.0f, 0.0f, 1.0f));
-    planes[2].setPoint(glm::vec3(mMinPoint.x, mMinPoint.y, mMinPoint.z));
-    planes[2].setNormal(glm::vec3(0.0f, -1.0f, 0.0f));
-    planes[3].setPoint(glm::vec3(mMinPoint.x, mMaxPoint.y, mMinPoint.z));
-    planes[3].setNormal(glm::vec3(0.0f, 1.0f, 0.0f));
-    planes[4].setPoint(glm::vec3(mMinPoint.x, mMinPoint.y, mMinPoint.z));
-    planes[4].setNormal(glm::vec3(-1.0f, 0.0f, 0.0f));
-    planes[5].setPoint(glm::vec3(mMaxPoint.x, mMinPoint.y, mMinPoint.z));
-    planes[5].setNormal(glm::vec3(1.0f, 0.0f, 0.0f));
-    mTValue = tMax;
-    bool found = false;
-    for (int i = 0; i < 6; i ++) {
-        if (planes[i].intersectRay(transformedOrigin, transformedDirection, tMin, mTValue)) {
-            if (isInside(planes[i].getIntersectionPoint())) {
-                mTValue = planes[i].getTValue();
-                mIntersectionPoint = origin + mTValue * direction;
-                mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(planes[i].getIntersectionNormal(), 0.0f)));
-                found = true;
-            }
+    float minT = tMin, maxT = tMax;
+    if (glm::abs(transformedDirection.x) > 0.000001) {
+        if (transformedDirection.x > 0) {
+            minT = glm::max(minT, (mMinPoint.x - transformedOrigin.x) / transformedDirection.x);
+            maxT = glm::min(maxT, (mMaxPoint.x - transformedOrigin.x) / transformedDirection.x);
+        } else {
+            minT = glm::max(minT, (mMaxPoint.x - transformedOrigin.x) / transformedDirection.x);
+            maxT = glm::min(maxT, (mMinPoint.x - transformedOrigin.x) / transformedDirection.x);
+        }
+    } else {
+        if ((transformedOrigin.x < (mMinPoint.x - 0.000001)) || (transformedOrigin.x > (mMaxPoint.x + 0.000001))) {
+            return false;
         }
     }
-    return found;
+    if (glm::abs(transformedDirection.y) > 0.000001) {
+        if (transformedDirection.y > 0) {
+            minT = glm::max(minT, (mMinPoint.y - transformedOrigin.y) / transformedDirection.y);
+            maxT = glm::min(maxT, (mMaxPoint.y - transformedOrigin.y) / transformedDirection.y);
+        } else {
+            minT = glm::max(minT, (mMaxPoint.y - transformedOrigin.y) / transformedDirection.y);
+            maxT = glm::min(maxT, (mMinPoint.y - transformedOrigin.y) / transformedDirection.y);
+        }
+    } else {
+        if ((transformedOrigin.y < (mMinPoint.y - 0.000001)) || (transformedOrigin.y > (mMaxPoint.y + 0.000001))) {
+            return false;
+        }
+    }
+    if (glm::abs(transformedDirection.z) > 0.000001) {
+        if (transformedDirection.z > 0) {
+            minT = glm::max(minT, (mMinPoint.z - transformedOrigin.z) / transformedDirection.z);
+            maxT = glm::min(maxT, (mMaxPoint.z - transformedOrigin.z) / transformedDirection.z);
+        } else {
+            minT = glm::max(minT, (mMaxPoint.z - transformedOrigin.z) / transformedDirection.z);
+            maxT = glm::min(maxT, (mMinPoint.z - transformedOrigin.z) / transformedDirection.z);
+        }
+    } else {
+        if ((transformedOrigin.z < (mMinPoint.z - 0.000001)) || (transformedOrigin.z > (mMaxPoint.z + 0.000001))) {
+            return false;
+        }
+    }
+    if (minT > maxT + 0.000001) {
+        return false;
+    }
+    mTValue = minT;
+    mIntersectionPoint = origin + mTValue * direction;
+    glm::vec3 intersectionPoint = transformedOrigin + mTValue * transformedDirection;
+    if (glm::abs(intersectionPoint.x - mMinPoint.x) < 0.000001) {
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(-1, 0, 0, 0)));
+    } else if (glm::abs(intersectionPoint.x - mMaxPoint.x) < 0.000001) {
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(1, 0, 0, 0)));
+    } else if (glm::abs(intersectionPoint.y - mMinPoint.y) < 0.000001) {
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(0, -1, 0, 0)));
+    } else if (glm::abs(intersectionPoint.y - mMaxPoint.y) < 0.000001) {
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(0, 1, 0, 0)));
+    } else if (glm::abs(intersectionPoint.z - mMinPoint.z) < 0.000001) {
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(0, 0, -1, 0)));
+    } else {
+        mIntersectionNormal = normalSign * glm::normalize(glm::vec3(mNormalTransform * glm::vec4(0, 0, 1, 0)));
+    }
+    return true;
 }
 
 BoxSource::BoxSource(glm::mat4 transform, glm::mat4 worldToCamera) 

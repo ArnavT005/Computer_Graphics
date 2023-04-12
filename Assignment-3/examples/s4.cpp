@@ -9,6 +9,7 @@ int main() {
     if (!r.initializeSDL()) {
         return EXIT_FAILURE;
     }
+    // r.enableGammaCorrection();
     DiffuseSphere s[3];
     s[0].setCenter(glm::vec3(0.0f, 0.0f, -2.0f));
     s[0].setRadius(1.0f);
