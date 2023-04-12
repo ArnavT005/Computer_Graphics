@@ -5,9 +5,9 @@
 #include "plane.hpp"
 #include "box.hpp"
 #include "pointSource.hpp"
-#include <stdio.h>
 #include <string>
 #include <vector>
+#include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>

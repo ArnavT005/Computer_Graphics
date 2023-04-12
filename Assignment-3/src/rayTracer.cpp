@@ -1,13 +1,12 @@
 #include "rayTracer.hpp"
 
-#include <iostream>
-
 const int RayTracer::FRAME_WIDTH;
 const int RayTracer::FRAME_HEIGHT;
 const int RayTracer::DISPLAY_SCALE;
 const int RayTracer::SAMPLE_SIDE;
 
 RayTracer::RayTracer(RenderingMode mode, int *pFrameWidth, int *pFrameHeight, int *pDisplayScale, int *pSampleCount) {
+    srand((unsigned) time(nullptr));
     mMode = mode;
     mGammaCorrection = false;
     mIgnoreTransparent = false;
@@ -283,7 +282,7 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, flo
                 return static_cast<BoxSource*>(object)->getRadiance();
         }
     }
-    float eps = glm::linearRand(0.0f, 1.0f);
+    float eps = ((float) rand() / (float) RAND_MAX);
     float continuationProbability = 1.0f - 1.0f / (mRecursionDepth + 1);
     if ((mRecursionDepth + 1) * eps < 1.0f) {
         return glm::vec3(0.0f);
@@ -345,7 +344,7 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, flo
             reflectedRayDirection = static_cast<TransparentBox*>(object)->getReflectedRayDirection(direction, intersectionNormal);
             refractedRayDirection = static_cast<TransparentBox*>(object)->getRefractedRayDirection(outsideRefractiveIndex, insideRefractiveIndex, direction, intersectionNormal);
     }
-    eps = glm::linearRand(0.0f, 1.0f);
+    eps = ((float) rand() / (float) RAND_MAX);
     if (eps < fresnelCoefficient) {
         return incidentRadiance(intersectionPoint, reflectedRayDirection, 0.001f) / continuationProbability;
     }
@@ -357,8 +356,8 @@ glm::vec3 RayTracer::incidentRadiance(glm::vec3 origin, glm::vec3 direction, flo
 
 glm::vec3 RayTracer::sampleHemisphereCosine(glm::vec3 point, glm::vec3 normal) {
     float eps[2];
-    eps[0] = glm::linearRand(0.0f, 1.0f);
-    eps[1] = glm::linearRand(0.0f, 1.0f);
+    eps[0] = ((float) rand() / (float) RAND_MAX);
+    eps[1] = ((float) rand() / (float) RAND_MAX);
     normal = glm::normalize(normal);
     glm::vec3 e1;
     if (normal.x != 0 || normal.y != 0) {

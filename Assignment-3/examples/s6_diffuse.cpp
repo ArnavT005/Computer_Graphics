@@ -1,6 +1,4 @@
 #include "../src/rayTracer.hpp"
-#include "../src/sphere.hpp"
-#include "../src/plane.hpp"
 
 int main() {
     int frameWidth = 640, frameHeight = 480;

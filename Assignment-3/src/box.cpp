@@ -1,7 +1,5 @@
 #include "box.hpp"
-#include "plane.hpp"
 
-#include <iostream>
 Box::Box(MaterialType material, glm::mat4 transform, glm::mat4 worldToCamera) 
     : Object(ShapeType::BOX, material, transform, worldToCamera) {}
 
