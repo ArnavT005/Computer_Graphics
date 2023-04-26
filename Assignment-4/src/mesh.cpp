@@ -103,22 +103,11 @@ namespace COL781 {
         }
         
         float Mesh::norm(glm::vec3 a) {
-            return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
-        }
-
-        glm::vec3 Mesh::normalize(glm::vec3 a) {
-            return a / norm(a);
-        }
-
-        glm::vec3 Mesh::crossProduct(glm::vec3 a, glm::vec3 b) {
-            float x = a.y * b.z - a.z * b.y;
-            float y = a.z * b.x - a.x * b.z;
-            float z = a.x * b.y - a.y * b.x;
-            return glm::vec3(x, y, z);
+            return glm::sqrt(glm::dot(a, a));
         }
 
         float Mesh::sin(glm::vec3 a, glm::vec3 b) {
-            return norm(crossProduct(a, b)) / (norm(a) * norm(b));
+            return norm(glm::cross(a, b)) / (norm(a) * norm(b));
         }
 
         int Mesh::find(int x, glm::ivec3 indices) {
@@ -128,48 +117,6 @@ namespace COL781 {
                 return 1;
             } else {
                 return 2;
-            }
-        }
-
-        std::vector<int> Mesh::match(glm::ivec3 indices, std::vector<int> edges) {
-            assert(edges.size() == 3);
-            std::vector<int> ind = {indices[0], indices[1], indices[2], indices[0]};
-            std::vector<int> matchedEdges;
-            for (int i = 0; i < 3; i ++) {
-                for (int j = 0; j < 3; j ++) {
-                    std::vector<int> v = getAdjacentVertices(Entity::EDGE, edges[j]);
-                    if (std::min(v[0], v[1]) == std::min(ind[i], ind[i + 1]) && std::max(v[0], v[1]) == std::max(ind[i], ind[i + 1])) {
-                        matchedEdges.push_back(edges[j]);
-                        break;
-                    }
-                }
-            }
-            return matchedEdges;
-        }
-
-        Mesh::Mesh() {
-            mHalfEdges.clear();
-            mVertices.clear();
-            mEdges.clear();
-            mFaces.clear();
-            mVirtualFaces.clear();
-            isConnected = false;
-        }
-
-        Mesh::Mesh(int numFaces, int numVertices, glm::ivec3 *pFaces, glm::vec3 *pVertices, glm::vec3 *pNormals) {
-            mFaces.resize(numFaces);
-            mVertices.resize(numVertices);
-            for (int i = 0; i < numVertices; i ++) {
-                mVertices[i] = {i, false, glm::vec3(0), pVertices[i], {-1, -1}, this};               
-                if (pNormals != nullptr) {
-                    mVertices[i].normal = pNormals[i];
-                }
-            }
-            for (int i = 0; i < numFaces; i ++) {
-                mFaces[i] = {i, false, glm::vec3(0), pFaces[i], {-1, -1}, this};
-                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
-                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
-                mFaces[i].normal = normalize(crossProduct(a, b));
             }
         }
 
@@ -198,7 +145,7 @@ namespace COL781 {
                 mFaces[i] = {i, false, glm::vec3(0), pFaces[i], {-1, -1}, this};
                 glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
-                mFaces[i].normal = normalize(crossProduct(a, b));
+                mFaces[i].normal = glm::normalize(glm::cross(a, b));
             }
             return true;
         }
@@ -217,107 +164,19 @@ namespace COL781 {
                     glm::vec3 b = mVertices[mFaces[adjacentFacesIds[j]].indices[(index + 2) % 3]].position - mVertices[mFaces[adjacentFacesIds[j]].indices[index]].position;
                     normal += mFaces[adjacentFacesIds[j]].normal * sin(a, b) / (norm(a) * norm(b));
                 }
-                normal = normalize(normal);
+                normal = glm::normalize(normal);
                 mVertices[i].normal = normal;
             }
             return true;
         }
 
-        std::vector<int> Mesh::getAdjacentVertices(Entity entity, int id) {
-            if (!isConnected) {
-                std::cout << "Cannot get adjacent vertices. Mesh is not connected!" << std::endl;
-                return std::vector<int>();
-            }
-            if (entity == Entity::VERTEX) {
-                return mVertices[id].getAdjacentVertices();
-            } else if (entity == Entity::EDGE) {
-                return mEdges[id].getAdjacentVertices();
-            } else {
-                return mFaces[id].getAdjacentVertices();
-            }
-        }
-
-        std::vector<int> Mesh::getAdjacentEdges(Entity entity, int id) {
-            if (!isConnected) {
-                std::cout << "Cannot get adjacent edges. Mesh is not connected!" << std::endl;
-                return std::vector<int>();
-            }
-            if (entity == Entity::VERTEX) {
-                return mVertices[id].getAdjacentEdges();
-            } else if (entity == Entity::FACE) {
-                return mFaces[id].getAdjacentEdges();
-            } else {
-                std::cout << "Cannot get adjacent edges for an edge. Not implemented!" << std::endl;
-                return std::vector<int>();
-            }
-        }
-
-        std::vector<int> Mesh::getAdjacentFaces(Entity entity, int id) {
-            if (!isConnected) {
-                std::cout << "Cannot get adjacent faces. Mesh is not connected!" << std::endl;
-                return std::vector<int>();
-            }
-            if (entity == Entity::VERTEX) {
-                return mVertices[id].getAdjacentFaces();
-            } else if (entity == Entity::EDGE) {
-                return mEdges[id].getAdjacentFaces();
-            } else {
-                return mFaces[id].getAdjacentFaces();
-            }
-        }
-
-        std::vector<glm::vec3> Mesh::getVertices() {
-            if (mVertices.size() == 0) {
-                return std::vector<glm::vec3>();
-            }
-            std::vector<glm::vec3> vertices(mVertices.size());
-            for (int i = 0; i < vertices.size(); i ++) {
-                vertices[i] = mVertices[i].position;
-            }
-            return vertices;
-        }
-
-        std::vector<glm::vec3> Mesh::getNormals() {
-            if (mVertices.size() == 0) {
-                return std::vector<glm::vec3>();
-            }
-            std::vector<glm::vec3> normals(mVertices.size());
-            for (int i = 0; i < normals.size(); i ++) {
-                normals[i] = mVertices[i].normal;
-            }
-            return normals;
-        }
-
-        std::vector<glm::ivec3> Mesh::getFaces() {
-            if (mFaces.size() == 0) {
-                return std::vector<glm::ivec3>();
-            }
-            std::vector<glm::ivec3> faces(mFaces.size() - mVirtualFaces.size());
-            for (int i = 0; i < faces.size(); i ++) {
-                faces[i] = mFaces[i].indices;
-            }
-            return faces;
-        }
-
-        Vertex* Mesh::getVertex(int id) {
-            if (id < mVertices.size()) {
-                return &mVertices[id];
-            }
-            return nullptr;
-        }
-
-        Edge* Mesh::getEdge(int id) {
-            if (id < mEdges.size()) {
-                return &mEdges[id];
-            }
-            return nullptr;
-        }
-
-        Face* Mesh::getFace(int id) {
-            if (id < mFaces.size()) {
-                return &mFaces[id];
-            }
-            return nullptr;
+        void Mesh::destroy() {
+            mHalfEdges.clear();
+            mVertices.clear();
+            mEdges.clear();
+            mFaces.clear();
+            mVirtualFaces.clear();
+            isConnected = false;
         }
 
         void Mesh::connect() {
@@ -444,16 +303,54 @@ namespace COL781 {
             isConnected = true;
         }
 
-        void Mesh::send(V::Viewer &viewer) {
-            std::vector<glm::vec3> vertices = getVertices();
-            std::vector<glm::vec3> normals = getNormals();
-            std::vector<glm::ivec3> triangles = getFaces();
-            viewer.setVertices(mVertices.size(), vertices.data());
-            viewer.setNormals(mVertices.size(), normals.data());
-            viewer.setTriangles(mFaces.size() - mVirtualFaces.size(), triangles.data());
+        std::vector<int> Mesh::getAdjacentFaces(Entity entity, int id) {
+            if (!isConnected) {
+                std::cout << "Cannot get adjacent faces. Mesh is not connected!" << std::endl;
+                return std::vector<int>();
+            }
+            if (entity == Entity::VERTEX) {
+                return mVertices[id].getAdjacentFaces();
+            } else if (entity == Entity::EDGE) {
+                return mEdges[id].getAdjacentFaces();
+            } else {
+                return mFaces[id].getAdjacentFaces();
+            }
         }
 
-        void Mesh::destroy() {
+        std::vector<glm::vec3> Mesh::getVertices() {
+            if (mVertices.size() == 0) {
+                return std::vector<glm::vec3>();
+            }
+            std::vector<glm::vec3> vertices(mVertices.size());
+            for (int i = 0; i < vertices.size(); i ++) {
+                vertices[i] = mVertices[i].position;
+            }
+            return vertices;
+        }
+
+        std::vector<glm::vec3> Mesh::getNormals() {
+            if (mVertices.size() == 0) {
+                return std::vector<glm::vec3>();
+            }
+            std::vector<glm::vec3> normals(mVertices.size());
+            for (int i = 0; i < normals.size(); i ++) {
+                normals[i] = mVertices[i].normal;
+            }
+            return normals;
+        }
+
+        std::vector<glm::ivec3> Mesh::getFaces() {
+            if (mFaces.size() == 0) {
+                return std::vector<glm::ivec3>();
+            }
+            std::vector<glm::ivec3> faces(mFaces.size() - mVirtualFaces.size());
+            for (int i = 0; i < faces.size(); i ++) {
+                faces[i] = mFaces[i].indices;
+            }
+            return faces;
+        }
+
+        Mesh::Mesh() {
             mHalfEdges.clear();
             mVertices.clear();
             mEdges.clear();
@@ -462,13 +359,13 @@ namespace COL781 {
             isConnected = false;
         }
 
-        void Mesh::createSquareMesh(int m, int n, float s) {
+        void Mesh::createRectangleMesh(int m, int n, float l, float w) {
             destroy();
             std::vector<glm::vec3> vertices, normals;
             std::vector<glm::ivec3> triangles;
             for (int i = 0; i <= m; i ++) {
                 for (int j = 0; j <= n; j ++) {
-                    vertices.push_back(glm::vec3(-s + j / (float) n, s - i / (float) m, 0));
+                    vertices.push_back(glm::vec3(-l + 2 * l * j / (float) n, w - 2 * w * i / (float) m, 0));
                     normals.push_back(glm::vec3(0, 0, 1));
                 }
             }
@@ -518,173 +415,17 @@ namespace COL781 {
             connect();
         }
 
-        bool Mesh::load(std::string filename){
-            destroy();
-            std::fstream file;
-            file.open(filename);
-            if(!file.is_open()){
-                std::cout << "Cannot load mesh. Error in opening file!" << std::endl;
-                return false;
-            }
-            std::string line;
-            std::vector<glm::vec3> vertices, normals;
-            std::map<int, int> v_idx_to_obj_v_idx, n_idx_to_obj_n_idx;
-            std::vector<glm::vec3> objectVertices, objectNormals;
-            std::vector<glm::ivec3> objectFaces;
-            while(getline(file, line)){
-                if(line[0] == 'v' && line[1] == ' '){
-                    glm::vec3 vertex;
-                    sscanf(line.c_str(), "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
-                    vertices.push_back(vertex);
-                }
-                else if(line[0] == 'v' && line[1] == 'n'){
-                    glm::vec3 normal;
-                    sscanf(line.c_str(), "vn %f %f %f", &normal.x, &normal.y, &normal.z);
-                    normals.push_back(normalize(normal));
-                }
-                else if(line[0] == 'f'){
-                    int v_idx[3], t_idx[3], n_idx[3] = {-1, -1, -1};
-                    glm::ivec3 face;
-                    if (sscanf(line.c_str(), "f %d %d %d", &v_idx[0], &v_idx[1], &v_idx[2]) == 3);
-                    else if (sscanf(line.c_str(), "f %d/%d %d/%d %d/%d", &v_idx[0], &t_idx[0], &v_idx[1], &t_idx[1], &v_idx[2], &t_idx[2]) == 6);
-                    else if (sscanf(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d", &v_idx[0], &t_idx[0], &n_idx[0], &v_idx[1], &t_idx[1], &n_idx[1], &v_idx[2], &t_idx[2], &n_idx[2]) == 9);
-                    else sscanf(line.c_str(), "f %d//%d %d//%d %d//%d", &v_idx[0], &n_idx[0], &v_idx[1], &n_idx[1], &v_idx[2], &n_idx[2]);
-                    for (int i = 0; i < 3; i ++) {
-                        if (v_idx_to_obj_v_idx.find(v_idx[i]) == v_idx_to_obj_v_idx.end()) {
-                            v_idx_to_obj_v_idx.insert({v_idx[i], objectVertices.size()});
-                            objectVertices.push_back(vertices[v_idx[i] - 1]);
-                        }
-                        v_idx[i] = v_idx_to_obj_v_idx[v_idx[i]];
-                        if (n_idx[i] == -1) {
-                            continue;
-                        }
-                        if (n_idx_to_obj_n_idx.find(n_idx[i]) == n_idx_to_obj_n_idx.end()) {
-                            n_idx_to_obj_n_idx.insert({n_idx[i], objectNormals.size()});
-                            objectNormals.push_back(normals[n_idx[i] - 1]);
-                        }
-                    }
-                    face = glm::ivec3(v_idx[0], v_idx[1], v_idx[2]);
-                    objectFaces.push_back(face);
-                }
-            }
-            file.close();
-            setVertices(objectVertices.size(), objectVertices.data(), objectNormals.data());
-            setFaces(objectFaces.size(), objectFaces.data());
-            connect();
-            if (objectNormals.size() == 0) {
-                computeAndSetVertexNormals();
-            }
-            return true;
+        void Mesh::createCylinderMesh(int n, float l, float r) {
+
         }
 
-        bool Mesh::smooth(int numIter, float lambda, bool taubin, float mu) {
-            if (!isConnected) {
-                std::cout << "Cannot smooth mesh. Mesh is not connected!" << std::endl;
-                return false;
-            }
-            std::vector<glm::vec3> displacement(mVertices.size());
-            std::vector<std::vector<int>> adjacentVertices(mVertices.size());
-            for (int i = 0; i < mVertices.size(); i ++) {
-                adjacentVertices[i] = getAdjacentVertices(Entity::VERTEX, i);
-            }
-            for (int i = 0; i < numIter; i ++) {
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    glm::vec3 sum(0);
-                    for (int id : adjacentVertices[j]) {
-                        sum += mVertices[id].position - mVertices[j].position;
-                    }
-                    displacement[j] = sum / (float) adjacentVertices[j].size();
-                }
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    mVertices[j].position += lambda * displacement[j];
-                }
-                if (!taubin) {
-                    continue;
-                }
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    glm::vec3 sum(0);
-                    for (int id : adjacentVertices[j]) {
-                        sum += mVertices[id].position - mVertices[j].position;
-                    }
-                    displacement[j] = sum / (float) adjacentVertices[j].size();
-                }
-                for (int j = 0; j < mVertices.size(); j ++) {
-                    mVertices[j].position += mu * displacement[j];
-                }
-            }
-            for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
-                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
-                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
-                mFaces[i].normal = normalize(crossProduct(a, b));
-            }
-            computeAndSetVertexNormals();
-            return true;
-        }
-
-        bool Mesh::subdivide() {
-            if (!isConnected) {
-                std::cout << "Cannot subdivide mesh. Mesh is not connected!" << std::endl;
-                return false;
-            }
-            int numVertices = mVertices.size(), numEdges = mEdges.size(), numFaces = mFaces.size() - mVirtualFaces.size();
-            std::vector<glm::vec3> oddVertices(numEdges, glm::vec3(0)), evenVertices(numVertices, glm::vec3(0));
-            for (int i = 0; i < numEdges; i ++) {
-                std::vector<int> adj_v = getAdjacentVertices(Entity::EDGE, i);
-                if (mEdges[i].isBoundary) {
-                    oddVertices[i] = (mVertices[adj_v[0]].position + mVertices[adj_v[1]].position) / 2.0f;
-                } else {
-                    std::vector<int> adj_f = getAdjacentFaces(Entity::EDGE, i);
-                    std::vector<int> adj_f_v[2] = {getAdjacentVertices(Entity::FACE, adj_f[0]), getAdjacentVertices(Entity::FACE, adj_f[1])};
-                    int opp_v[2], j = 0;
-                    for (std::vector<int> f_v : adj_f_v) {
-                        for (int v : f_v) {
-                            if (v != adj_v[0] && v != adj_v[1]) {
-                                opp_v[j ++] = v;
-                            }
-                        }
-                    }
-                    oddVertices[i] = (3.0f * mVertices[adj_v[0]].position + 3.0f * mVertices[adj_v[1]].position + mVertices[opp_v[0]].position + mVertices[opp_v[1]].position) / 8.0f;
-                }                
-            }
-            for (int i = 0; i < numVertices; i ++) {
-                std::vector<int> adj_v = getAdjacentVertices(Entity::VERTEX, i);
-                int n = adj_v.size();
-                glm::vec3 sum_adj_v = glm::vec3(0);
-                for (int v : adj_v) {
-                    sum_adj_v += mVertices[v].position;
-                }
-                float weight = 0.0f;
-                if (mVertices[i].isBoundary) {
-                    weight = 1.0f / 8.0f;
-                } else {
-                    if (n == 3) {
-                        weight = 3.0f / 16.0f;
-                    } else {
-                        weight = 3.0f / (8.0f * n);
-                    }
-                }
-                evenVertices[i] = (1 - n * weight) * mVertices[i].position + weight * sum_adj_v;
-            }
-            std::vector<glm::vec3> new_vertices(numVertices + numEdges, glm::vec3(0));
-            for (int i = 0; i < numVertices + numEdges; i ++) {
-                new_vertices[i] = (i < numVertices) ? evenVertices[i] : oddVertices[i - numVertices];
-            }
-            std::vector<glm::ivec3> new_faces(4 * numFaces, glm::ivec3(0));
-            for (int i = 0; i < numFaces; i ++) {
-                glm::ivec3 indices = mFaces[i].indices;
-                std::vector<int> adj_e = getAdjacentEdges(Entity::FACE, i);
-                adj_e = match(indices, adj_e);
-                new_faces[4 * i] = glm::ivec3(indices[0], numVertices + adj_e[0], numVertices + adj_e[2]);
-                new_faces[4 * i + 1] = glm::ivec3(numVertices + adj_e[0], indices[1], numVertices + adj_e[1]);
-                new_faces[4 * i + 2] = glm::ivec3(numVertices + adj_e[1], indices[2], numVertices + adj_e[2]);
-                new_faces[4 * i + 3] = numVertices + glm::ivec3(adj_e[2], adj_e[0], adj_e[1]);
-            }
-            destroy();
-            setVertices(new_vertices.size(), new_vertices.data());
-            setFaces(new_faces.size(), new_faces.data());
-            connect();
-            computeAndSetVertexNormals();
-            return true;
+        void Mesh::send(V::Viewer *pViewer) {
+            std::vector<glm::vec3> vertices = getVertices();
+            std::vector<glm::vec3> normals = getNormals();
+            std::vector<glm::ivec3> triangles = getFaces();
+            pViewer->setVertices(mVertices.size(), vertices.data());
+            pViewer->setNormals(mVertices.size(), normals.data());
+            pViewer->setTriangles(mFaces.size() - mVirtualFaces.size(), triangles.data());
         }
 
     }

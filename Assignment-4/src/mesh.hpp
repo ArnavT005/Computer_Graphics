@@ -66,7 +66,7 @@ namespace COL781 {
         };
         
         class Mesh {
-            private:
+            protected:
                 std::vector<std::vector<HalfEdge>> mHalfEdges;
                 std::vector<Vertex> mVertices;
                 std::vector<Edge> mEdges;
@@ -74,35 +74,25 @@ namespace COL781 {
                 std::vector<int> mVirtualFaces;
                 bool isConnected;
                 float norm(glm::vec3);
-                glm::vec3 normalize(glm::vec3);
-                glm::vec3 crossProduct(glm::vec3, glm::vec3);
                 float sin(glm::vec3, glm::vec3);
                 int find(int, glm::ivec3);
-                std::vector<int> match(glm::ivec3, std::vector<int>);
-
-            public:
-                Mesh();
-                Mesh(int, int, glm::ivec3*, glm::vec3*, glm::vec3* = nullptr);
                 bool setVertices(int, glm::vec3*, glm::vec3* = nullptr);
                 bool setFaces(int, glm::ivec3*);
                 bool computeAndSetVertexNormals();
-                std::vector<int> getAdjacentVertices(Entity, int);
-                std::vector<int> getAdjacentEdges(Entity, int);
+                void destroy();
+                void connect();
                 std::vector<int> getAdjacentFaces(Entity, int);
                 std::vector<glm::vec3> getVertices();
                 std::vector<glm::vec3> getNormals();
                 std::vector<glm::ivec3> getFaces();
-                Vertex* getVertex(int);
-                Edge* getEdge(int);
-                Face* getFace(int);
-                void connect();
-                void send(V::Viewer&);
-                void destroy();
-                void createSquareMesh(int, int, float = 0.5);
+
+            public:
+                Mesh();
+                void createRectangleMesh(int, int, float = 0.5, float = 0.5);
                 void createSphereMesh(int, int, float = 0.5);
-                bool load(std::string);
-                bool smooth(int, float, bool = false, float = 0);
-                bool subdivide();
+                void createCylinderMesh(int, float = 0.5, float = 0.25);
+                void send(V::Viewer*);
+                virtual void update(float) = 0;
 
                 friend struct HalfEdge;
                 friend struct Vertex;
