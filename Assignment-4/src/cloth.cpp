@@ -4,6 +4,7 @@ namespace COL781 {
     namespace Cloth {
         Cloth::Cloth() {
             mInitTransform = glm::mat4(1.0f);
+            mCount = 4;
             mRows = 1;
             mCols = 1;
             mLength = 0.5f;
@@ -20,7 +21,29 @@ namespace COL781 {
         }
 
         void Cloth::update(float step) {
-            
+            if (mPBD) {
+
+            } else {
+                std::vector<glm::vec3> force(mCount, glm::vec3(0));
+                for (int i = 0; i <= mRows; i ++) {
+                    for (int j = 0; j <= mCols; j ++) {
+                        if (mFixed[i * (mCols + 1) + j]) {
+                            continue;
+                        }
+                        // calculate force on each particle
+                    }
+                }
+                for (int i = 0; i < mCount; i ++) {
+                    mVelocity[i] += step * force[i] / mMass;
+                    mVertices[i].position += step * mVelocity[i];
+                }
+            }
+            for (int i = 0; i < mFaces.size(); i ++) {
+                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
+                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
+                mFaces[i].normal = glm::normalize(glm::cross(a, b));
+            }
+            computeAndSetVertexNormals();
         }
 
         void Cloth::setInitTransform(glm::mat4 initTransform) {
@@ -28,6 +51,7 @@ namespace COL781 {
         }
 
         void Cloth::setGeometricParameters(int rows, int cols, float length, float width) {
+            mCount = (rows + 1) * (cols + 1);
             mRows = rows;
             mCols = cols;
             mLength = length;
@@ -50,24 +74,23 @@ namespace COL781 {
             }
         }
 
-        void Cloth::enablePBD() {
+        void Cloth::enablePBD(int numIter) {
             mPBD = true;
+            mNumIter = numIter;
         }
 
         void Cloth::initialize() {
             createRectangleMesh(mRows, mCols, mLength, mWidth);
-            std::vector<glm::vec3> vertices = getVertices();
-            std::vector<glm::vec3> normals = getNormals();
-            std::vector<glm::ivec3> faces = getFaces();
-            for (int i = 0; i < vertices.size(); i ++) {
-                vertices[i] = glm::vec3(mInitTransform * glm::vec4(vertices[i], 1.0f));
-                normals[i] = glm::vec3(glm::inverse(glm::transpose(mInitTransform)) * glm::vec4(normals[i], 0.0f));
+            for (int i = 0; i < mCount; i ++) {
+                mVertices[i].position = glm::vec3(mInitTransform * glm::vec4(mVertices[i].position, 1.0f));
+                mVertices[i].normal = glm::vec3(glm::inverse(glm::transpose(mInitTransform)) * glm::vec4(mVertices[i].normal, 0.0f));
             }
-            destroy();
-            setVertices(vertices.size(), vertices.data(), normals.data());
-            setFaces(faces.size(), faces.data());
-            connect();
-            mVelocity.resize(vertices.size(), glm::vec3(0));
+            for (int i = 0; i < mFaces.size(); i ++) {
+                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
+                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
+                mFaces[i].normal = glm::normalize(glm::cross(a, b));
+            }
+            mVelocity.resize(mCount, glm::vec3(0));
         }
 
     }
