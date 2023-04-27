@@ -22,7 +22,6 @@ namespace COL781 {
         };
 
         class Sphere: public RigidBody {
-
         };
 
         class Cylinder: public RigidBody {
@@ -30,7 +29,7 @@ namespace COL781 {
         };
 
         class Rectangle: public RigidBody {
-
+            
         };
 
     }
