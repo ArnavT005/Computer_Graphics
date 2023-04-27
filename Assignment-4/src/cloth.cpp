@@ -8,11 +8,19 @@ namespace COL781 {
             mCols = 1;
             mLength = 0.5f;
             mWidth = 0.5f;
+            mMass = 1.0f;
+            mRadius = 0.05;
+            mStruct = 1;
+            mShear = 0.5;
+            mBend = 0.1;
+            mDamp = 0.05;
+            mVelocity.clear();
+            mFixed.clear();
             mPBD = false;
         }
 
-        void Cloth::update(float delta_t) {
-
+        void Cloth::update(float step) {
+            
         }
 
         void Cloth::setInitTransform(glm::mat4 initTransform) {
@@ -26,8 +34,20 @@ namespace COL781 {
             mWidth = width;
         }
 
-        void Cloth::setPhysicalParameters(float param) {
+        void Cloth::setPhysicalParameters(float mass, float radius, float kStruct, float kShear, float kBend, float kDamp) {
+            mMass = mass;
+            mRadius = radius;
+            mStruct = kStruct;
+            mShear = kShear;
+            mBend = kBend;
+            mDamp = kDamp;          
+        }
 
+        void Cloth::setFixedPoints(std::vector<bool> &fixed) {
+            mFixed.resize(fixed.size());
+            for (int i = 0; i < fixed.size(); i ++) {
+                mFixed[i] = fixed[i];
+            }
         }
 
         void Cloth::enablePBD() {
@@ -47,6 +67,7 @@ namespace COL781 {
             setVertices(vertices.size(), vertices.data(), normals.data());
             setFaces(faces.size(), faces.data());
             connect();
+            mVelocity.resize(vertices.size(), glm::vec3(0));
         }
 
     }

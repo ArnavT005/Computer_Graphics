@@ -12,8 +12,14 @@ int main() {
 	if (!v.initialize("Cloth", 640, 480)) {
 		return EXIT_FAILURE;
 	}
-    c.setInitTransform(glm::scale(glm::mat4(1.0f), glm::vec3(1.6, 1, 1)));
-    c.setGeometricParameters(1, 1);
+    glm::mat4 transform = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0, 1, -0.5)), glm::pi<float>() / 2.0f, glm::vec3(1, 0, 0));
+    c.setInitTransform(transform);
+    int m = 1, n = 1;
+    c.setGeometricParameters(m, n);
+    c.setPhysicalParameters(1, 0.05, 1, 0.5, 0.1, 0.05);
+    std::vector<bool> fixed((m + 1) * (n + 1), false);
+    fixed[0] = fixed[n] = true;
+    c.setFixedPoints(fixed);
     c.initialize();
     c.send(&v);
     v.view();
