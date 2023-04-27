@@ -1,6 +1,9 @@
-#include "viewer.hpp"
-#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "viewer.hpp"
+#include "simulation.hpp"
+
 namespace COL781 {
 	namespace Viewer {
 
@@ -78,7 +81,7 @@ namespace COL781 {
 			r.setTriangleIndices(object, n, triangles);
 		}
 
-		void Viewer::view() {
+		void Viewer::view(S::Simulation *pSimulation) {
 			// The transformation matrix.
 			glm::mat4 model = glm::mat4(1.0f);
 			glm::mat4 view;    
@@ -141,19 +144,27 @@ namespace COL781 {
 
 				view = camera.getViewMatrix();
 				
-				r.setUniform(program, "modelView", view*model);
-				r.setUniform(program, "projection", projection);
-				r.setUniform(program, "lightPos", camera.position);
-				r.setUniform(program, "viewPos", camera.position);
-				r.setUniform(program, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+				int numObjects = pSimulation->getObjectCount();
+				float step = pSimulation->getStep();
+				for (int i = 0; i < numObjects; i ++) {
+					M::Mesh *obj = pSimulation->getObject(i);
+					obj->update(step);
+					obj->send(this);
 
-				r.setupFilledFaces();
-				r.setUniform(program, "objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
-				r.drawObject(object);
+					r.setUniform(program, "modelView", view*model);
+					r.setUniform(program, "projection", projection);
+					r.setUniform(program, "lightPos", camera.position);
+					r.setUniform(program, "viewPos", camera.position);
+					r.setUniform(program, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
-				r.setupWireFrame();
-				r.setUniform(program, "objectColor", glm::vec3(0.0f, 0.0f, 0.0f));
-				r.drawObject(object);
+					r.setupFilledFaces();
+					r.setUniform(program, "objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
+					r.drawObject(object);
+
+					r.setupWireFrame();
+					r.setUniform(program, "objectColor", glm::vec3(0.0f, 0.0f, 0.0f));
+					r.drawObject(object);
+				}
 				r.show();
 			}
 		}

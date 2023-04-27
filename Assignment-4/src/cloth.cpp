@@ -31,6 +31,7 @@ namespace COL781 {
                             continue;
                         }
                         // calculate force on each particle
+                        force[i * (mCols + 1) + j] = glm::vec3(0, -0.005, 0);
                     }
                 }
                 for (int i = 0; i < mCount; i ++) {
@@ -38,7 +39,7 @@ namespace COL781 {
                     mVertices[i].position += step * mVelocity[i];
                 }
             }
-            for (int i = 0; i < mFaces.size(); i ++) {
+            for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
                 glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = glm::normalize(glm::cross(a, b));
@@ -85,7 +86,7 @@ namespace COL781 {
                 mVertices[i].position = glm::vec3(mInitTransform * glm::vec4(mVertices[i].position, 1.0f));
                 mVertices[i].normal = glm::vec3(glm::inverse(glm::transpose(mInitTransform)) * glm::vec4(mVertices[i].normal, 0.0f));
             }
-            for (int i = 0; i < mFaces.size(); i ++) {
+            for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
                 glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = glm::normalize(glm::cross(a, b));

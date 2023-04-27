@@ -1,12 +1,15 @@
 #include "../src/viewer.hpp"
 #include "../src/cloth.hpp"
+#include "../src/simulation.hpp"
 
 namespace V = COL781::Viewer;
 namespace C = COL781::Cloth;
+namespace S = COL781::Simulation;
 
 using namespace glm;
 
 int main() {
+    S::Simulation s;
     C::Cloth c;
 	V::Viewer v;
 	if (!v.initialize("Cloth", 640, 480)) {
@@ -21,6 +24,7 @@ int main() {
     fixed[0] = fixed[n] = true;
     c.setFixedPoints(fixed);
     c.initialize();
-    c.send(&v);
-    v.view();
+    s.setStep(0.0005);
+    s.addObject(&c);
+    v.view(&s);
 }

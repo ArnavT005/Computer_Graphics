@@ -92,6 +92,7 @@ namespace COL781 {
 		private:
 			SDL_Window *window;
 			bool quit;
+			GLuint vbo[2], ebo;
 		};
 
 	}

@@ -4,6 +4,14 @@
 #include "hw.hpp"
 
 namespace COL781 {
+	namespace Simulation {
+		class Simulation;
+	}
+}
+
+namespace S = COL781::Simulation;
+
+namespace COL781 {
 	namespace Viewer {
 
 		class Camera {
@@ -32,7 +40,7 @@ namespace COL781 {
 			void setVertices(int n, const glm::vec3* vertices);
 			void setNormals(int n, const glm::vec3* normals);
 			void setTriangles(int n, const glm::ivec3* triangles);
-			void view();
+			void view(S::Simulation*);
 		private:
 			COL781::OpenGL::Rasterizer r;
 			COL781::OpenGL::ShaderProgram program;

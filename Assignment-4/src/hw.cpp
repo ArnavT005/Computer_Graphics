@@ -161,11 +161,13 @@ namespace COL781 {
 			return object;
 		}
 
-		void setAttribs(Object &object, int attribIndex, int n, int d, const float* data) {
-			GLuint vbo;
-			glGenBuffers(1, &vbo);
+		void setAttribs(GLuint *vbo, Object &object, int attribIndex, int n, int d, const float* data) {
+			if (*vbo > 0) {
+				glDeleteBuffers(1, vbo);
+			}
+			glGenBuffers(1, vbo);
 			glBindVertexArray(object.vao);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, *vbo);
 			glBufferData(GL_ARRAY_BUFFER, n*d*sizeof(float), data, GL_STATIC_DRAW);
 			glVertexAttribPointer(attribIndex, d, GL_FLOAT, GL_FALSE, d*sizeof(float), NULL);
 			glEnableVertexAttribArray(attribIndex);
@@ -173,23 +175,25 @@ namespace COL781 {
 		}
 
 		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const float* data) {
-			setAttribs(object, attribIndex, n, 1, data);
+			setAttribs(&vbo[attribIndex], object, attribIndex, n, 1, data);
 		}
 
 		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const glm::vec2* data) {
-			setAttribs(object, attribIndex, n, 2, (float*)data);
+			setAttribs(&vbo[attribIndex], object, attribIndex, n, 2, (float*)data);
 		}
 
 		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const glm::vec3* data) {
-			setAttribs(object, attribIndex, n, 3, (float*)data);
+			setAttribs(&vbo[attribIndex], object, attribIndex, n, 3, (float*)data);
 		}
 
 		template <> void Rasterizer::setVertexAttribs(Object &object, int attribIndex, int n, const glm::vec4* data) {
-			setAttribs(object, attribIndex, n, 4, (float*)data);
+			setAttribs(&vbo[attribIndex], object, attribIndex, n, 4, (float*)data);
 		}
 
 		void Rasterizer::setTriangleIndices(Object &object, int n, const glm::ivec3* indices) {
-			GLuint ebo;
+			if (ebo > 0) {
+				glDeleteBuffers(1, &ebo);
+			}
 			glGenBuffers(1, &ebo);
 			glBindVertexArray(object.vao);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
