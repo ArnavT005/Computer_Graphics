@@ -5,6 +5,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/gtx/transform.hpp>
 #include "viewer.hpp"
 
 namespace V = COL781::Viewer;
