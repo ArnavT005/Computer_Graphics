@@ -380,7 +380,7 @@ namespace COL781 {
 
         void Cloth::checkCollision(Mesh *mesh) {
             for (int i = 0; i < mCount; i ++) {
-                static_cast<R::RigidBody*>(mesh)->checkCollision(mVertices[i].position, mVelocity[i]);
+                static_cast<R::RigidBody*>(mesh)->checkCollision(mVertices[i].position, mVelocity[i], mMass, mRadius);
             }
         }
 
