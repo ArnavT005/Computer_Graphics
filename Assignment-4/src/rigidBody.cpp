@@ -9,6 +9,8 @@ namespace COL781 {
             mLinearVelocity = glm::vec3(0);
             mAngularVelocity = 0;
             mRotationAxis = glm::vec3(0);
+            mRestitution = 0;
+            mFriction = 0;
         }
 
         void RigidBody::update(float step) {
@@ -69,7 +71,19 @@ namespace COL781 {
         }
 
         void Sphere::checkCollision(glm::vec3 &pos, glm::vec3 &vel, float mass, float radius) {
-
+            glm::vec3 center = (mVertices.back().position + mVertices[0].position) / 2.0f;
+            glm::vec3 n = glm::normalize(pos - center);
+            float dist = glm::length(pos - center) - (mRadius + radius);
+            if (dist >= 0) {
+                return;
+            }
+            if (glm::dot(vel, n) < 0) {
+                glm::vec3 nI = - (1.0f + mRestitution) * mass * glm::dot(vel, n) * n;
+                glm::vec3 tV = vel - glm::dot(vel, n) * n;
+                glm::vec3 tI = - glm::min(mFriction * glm::length(nI), mass * glm::length(tV)) * tV / glm::length(tV);
+                vel += (nI + tI) / mass;
+            }
+            pos -= dist * n;
         }
 
         Rectangle::Rectangle() : RigidBody(M::MeshType::RIGID_RECTANGLE) {
