@@ -40,7 +40,7 @@ namespace COL781 {
         class Rectangle: public RigidBody {
             private:
                 int mRows, mCols;
-                int mLength, mWidth;
+                float mLength, mWidth;
             public:
                 Rectangle();
                 void setGeometricParameters(int, int, float = 0.5, float = 0.5);
