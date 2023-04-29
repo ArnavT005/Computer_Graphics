@@ -24,6 +24,13 @@ namespace COL781 {
         };
 
         class Sphere: public RigidBody {
+            private:
+                float mRadius;
+                int mLongitude, mLatitude;
+            public:
+                Sphere();
+                void setGeometricParameters(int, int, float = 0.5);
+                void initialize();
         };
 
         class Cylinder: public RigidBody {
@@ -31,7 +38,13 @@ namespace COL781 {
         };
 
         class Rectangle: public RigidBody {
-            
+            private:
+                int mRows, mCols;
+                int mLength, mWidth;
+            public:
+                Rectangle();
+                void setGeometricParameters(int, int, float = 0.5, float = 0.5);
+                void initialize();
         };
 
     }
