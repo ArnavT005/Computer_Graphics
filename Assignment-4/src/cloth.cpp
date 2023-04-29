@@ -24,7 +24,184 @@ namespace COL781 {
             float vL = 2 * mWidth / mRows;
             float dL = glm::sqrt(vL * vL + hL * hL);
             if (mPBD) {
-
+                std::vector<glm::vec3> originalPos(mCount);
+                for (int i = 0; i < mCount; i ++) {
+                    originalPos[i] = mVertices[i].position;
+                }
+                std::vector<std::vector<glm::vec3>> force(mRows + 1, std::vector<glm::vec3>(mCols + 1, mMass * glm::vec3(0, -9.8, 0)));
+                for (int i = 0; i <= mRows; i ++) {
+                    for (int j = 0; j <= mCols; j ++) {
+                        if (mFixed[i * (mCols + 1) + j]) {
+                            continue;
+                        }
+                        glm::vec3 pos = mVertices[i * (mCols + 1) + j].position, tempPos;
+                        glm::vec3 vel = mVelocity[i * (mCols + 1) + j], tempVel;
+                        glm::vec3 unit;
+                        float len;
+                        // force from (i, j + 2)
+                        if (j < mCols - 1) {
+                            tempPos = mVertices[i * (mCols + 1) + (j + 2)].position;
+                            tempVel = mVelocity[i * (mCols + 1) + (j + 2)];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mBend.first * (len - (2 * hL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * hL);
+                        }
+                        // force from (i, j - 2)
+                        if (j > 1) {
+                            tempPos = mVertices[i * (mCols + 1) + (j - 2)].position;
+                            tempVel = mVelocity[i * (mCols + 1) + (j - 2)];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mBend.first * (len - (2 * hL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * hL);
+                        }
+                        if (i < mRows) {
+                            // force from (i + 1, j + 1)
+                            if (j < mCols) {
+                                tempPos = mVertices[(i + 1) * (mCols + 1) + (j + 1)].position;
+                                tempVel = mVelocity[(i + 1) * (mCols + 1) + (j + 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                            // force from (i + 1, j - 1)
+                            if (j > 0) {
+                                tempPos = mVertices[(i + 1) * (mCols + 1) + (j - 1)].position;
+                                tempVel = mVelocity[(i + 1) * (mCols + 1) + (j - 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                        }
+                        if (i > 0) {
+                            // force from (i - 1, j + 1)
+                            if (j < mCols) {
+                                tempPos = mVertices[(i - 1) * (mCols + 1) + (j + 1)].position;
+                                tempVel = mVelocity[(i - 1) * (mCols + 1) + (j + 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                            // force from (i - 1, j - 1)
+                            if (j > 0) {
+                                tempPos = mVertices[(i - 1) * (mCols + 1) + (j - 1)].position;
+                                tempVel = mVelocity[(i - 1) * (mCols + 1) + (j - 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                        }
+                        // force from (i + 2, j)
+                        if (i < mRows - 1) {
+                            tempPos = mVertices[(i + 2) * (mCols + 1) + j].position;
+                            tempVel = mVelocity[(i + 2) * (mCols + 1) + j];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mBend.first * (len - (2 * vL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * vL);
+                        }
+                        // force from (i - 2, j)
+                        if (i > 1) {
+                            tempPos = mVertices[(i - 2) * (mCols + 1) + j].position;
+                            tempVel = mVelocity[(i - 2) * (mCols + 1) + j];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mBend.first * (len - (2 * vL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * vL);
+                        }
+                    }
+                }
+                for (int i = 0; i <= mRows; i ++) {
+                    for (int j = 0; j <= mCols; j ++) {
+                        if (mFixed[i * (mCols + 1) + j]) {
+                            continue;
+                        }
+                        mVelocity[i * (mCols + 1) + j] += step * force[i][j] / mMass;
+                        mVertices[i * (mCols + 1) + j].position += step * mVelocity[i * (mCols + 1) + j];
+                    }
+                }
+                // constraint projections
+                for (int k = 0; k < mNumIter; k ++) {
+                    for (int i = 0; i <= mRows; i ++) {
+                        for (int j = 0; j <= mCols; j ++) {
+                            if (mFixed[i * (mCols + 1) + j]) {
+                                continue;
+                            }
+                            glm::vec3 pos, tempPos;
+                            glm::vec3 unit;
+                            float len;
+                            // project (i, j + 1) constraint
+                            if (j < mCols) {
+                                pos = mVertices[i * (mCols + 1) + j].position;
+                                tempPos = mVertices[i * (mCols + 1) + (j + 1)].position;
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                if (mFixed[i * (mCols + 1) + (j + 1)]) {
+                                    pos += (hL - len) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                } else {
+                                    pos += 0.5f * (hL - len) * unit;
+                                    tempPos += 0.5f * (len - hL) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                    mVertices[i * (mCols + 1) + (j + 1)].position = tempPos;
+                                }
+                            }
+                            // project (i, j - 1) constraint
+                            if (j > 0) {
+                                pos = mVertices[i * (mCols + 1) + j].position;
+                                tempPos = mVertices[i * (mCols + 1) + (j - 1)].position;
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                if (mFixed[i * (mCols + 1) + (j - 1)]) {
+                                    pos += (hL - len) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                } else {
+                                    pos += 0.5f * (hL - len) * unit;
+                                    tempPos += 0.5f * (len - hL) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                    mVertices[i * (mCols + 1) + (j - 1)].position = tempPos;
+                                }
+                            }
+                            // project (i + 1, j) constraint
+                            if (i < mRows) {
+                                pos = mVertices[i * (mCols + 1) + j].position;
+                                tempPos = mVertices[(i + 1) * (mCols + 1) + j].position;
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                if (mFixed[(i + 1) * (mCols + 1) + j]) {
+                                    pos += (vL - len) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                } else {
+                                    pos += 0.5f * (vL - len) * unit;
+                                    tempPos += 0.5f * (len - vL) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                    mVertices[(i + 1) * (mCols + 1) + j].position = tempPos;
+                                }
+                            }
+                            // project (i - 1, j) constraint
+                            if (i > 0) {
+                                pos = mVertices[i * (mCols + 1) + j].position;
+                                tempPos = mVertices[(i - 1) * (mCols + 1) + j].position;
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                if (mFixed[(i - 1) * (mCols + 1) + j]) {
+                                    pos += (vL - len) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                } else {
+                                    pos += 0.5f * (vL - len) * unit;
+                                    tempPos += 0.5f * (len - vL) * unit;
+                                    mVertices[i * (mCols + 1) + j].position = pos;
+                                    mVertices[(i - 1) * (mCols + 1) + j].position = tempPos;
+                                }
+                            }
+                        }
+                    }
+                }
+                for (int i = 0; i <= mRows; i ++) {
+                    for (int j = 0; j <= mCols; j ++) {
+                        if (mFixed[i * (mCols + 1) + j]) {
+                            continue;
+                        }
+                        mVelocity[i * (mCols + 1) + j] = (mVertices[i * (mCols + 1) + j].position - originalPos[i * (mCols + 1) + j]) / step;
+                    }
+                }
             } else {
                 std::vector<std::vector<glm::vec3>> force(mRows + 1, std::vector<glm::vec3>(mCols + 1, mMass * glm::vec3(0, -9.8, 0)));
                 for (int i = 0; i <= mRows; i ++) {

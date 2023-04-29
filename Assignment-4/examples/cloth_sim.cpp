@@ -23,6 +23,7 @@ int main() {
     std::vector<bool> fixed((m + 1) * (n + 1), false);
     fixed[0] = fixed[n] = true;
     c.setFixedPoints(fixed);
+    // c.enablePBD(10);
     c.initialize();
     s.setStep(0.0003);
     s.addObject(&c);
