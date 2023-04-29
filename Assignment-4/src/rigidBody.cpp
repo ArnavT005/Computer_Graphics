@@ -130,5 +130,34 @@ namespace COL781 {
             pos -= dist * n;
         }
 
+        Cylinder::Cylinder() : RigidBody(M::MeshType::RIGID_CYLINDER) {
+            mNumSides = 4;
+            mLength = 0.5f;
+            mRadius = 0.25f;
+        }
+
+        void Cylinder::setGeometricParameters(int numSides, float length, float radius) {
+            mNumSides = numSides;
+            mLength = length;
+            mRadius = radius;
+        }
+
+        void Cylinder::initialize() {
+            createCylinderMesh(mNumSides, mLength, mRadius);
+            for (int i = 0; i < mVertices.size(); i ++) {
+                mVertices[i].position = glm::vec3(mInitTransform * glm::vec4(mVertices[i].position, 1.0f));
+                mVertices[i].normal = glm::vec3(glm::inverse(glm::transpose(mInitTransform)) * glm::vec4(mVertices[i].normal, 0.0f));
+            }
+            for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
+                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
+                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
+                mFaces[i].normal = glm::normalize(glm::cross(a, b));
+            }
+        }
+
+        void Cylinder::checkCollision(glm::vec3 &pos, glm::vec3 &vel, float mass, float radius) {
+            // write code to check for collision and collision resolution
+        }
+
     }
 }

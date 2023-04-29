@@ -37,10 +37,6 @@ namespace COL781 {
                 void checkCollision(glm::vec3&, glm::vec3&, float, float);
         };
 
-        class Cylinder: public RigidBody {
-
-        };
-
         class Rectangle: public RigidBody {
             private:
                 int mRows, mCols;
@@ -48,6 +44,17 @@ namespace COL781 {
             public:
                 Rectangle();
                 void setGeometricParameters(int, int, float = 0.5, float = 0.5);
+                void initialize();
+                void checkCollision(glm::vec3&, glm::vec3&, float, float);
+        };
+        
+        class Cylinder: public RigidBody {
+            private:
+                int mNumSides;
+                float mLength, mRadius;
+            public:
+                Cylinder();
+                void setGeometricParameters(int, float = 0.5, float = 0.25);
                 void initialize();
                 void checkCollision(glm::vec3&, glm::vec3&, float, float);
         };

@@ -421,7 +421,10 @@ namespace COL781 {
         }
 
         void Mesh::createCylinderMesh(int n, float l, float r) {
-
+            // write code to create cylindrical mesh
+            // approximate as a prism with polygon having 'n' sides
+            // half length of prism is 'l'
+            // radius of prism is 'r' (radius of circumcircle of polygon face)
         }
 
         void Mesh::send(V::Viewer *pViewer) {
