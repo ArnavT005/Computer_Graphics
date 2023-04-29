@@ -12,12 +12,14 @@ namespace COL781 {
         class RigidBody: public M::Mesh {
             protected:
                 glm::mat4 mInitTransform;
-                glm::mat4 mConstantTransform;
+                glm::vec3 mLinearVelocity;
+                float mAngularVelocity;
+                glm::vec3 mRotationAxis;
             public:
                 RigidBody();
                 void update(float);
                 void setInitTransform(glm::mat4);
-                void setConstantTransform(glm::mat4);
+                void setPhysicalParameters(glm::vec3, float, glm::vec3);
                 virtual void initialize() = 0;
         };
 
