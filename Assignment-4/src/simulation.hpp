@@ -11,6 +11,8 @@ namespace COL781 {
             private:
                 float mStep;
                 std::vector<M::Mesh*> mObjects;
+                std::vector<M::Mesh*> mCloths;
+                std::vector<M::Mesh*> mRigidBodies;
             public:
                 Simulation();
                 void setStep(float);
@@ -18,6 +20,7 @@ namespace COL781 {
                 float getStep();
                 int getObjectCount();
                 M::Mesh* getObject(int);
+                void collisionUpdate();
         };
 
     }

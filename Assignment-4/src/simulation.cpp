@@ -1,10 +1,15 @@
 #include "simulation.hpp"
+#include "cloth.hpp"
+
+namespace C = COL781::Cloth;
 
 namespace COL781 {
     namespace Simulation {
         Simulation::Simulation() {
             mStep = 0.5f;
             mObjects.clear();
+            mCloths.clear();
+            mRigidBodies.clear();
         }
 
         void Simulation::setStep(float step) {
@@ -13,6 +18,11 @@ namespace COL781 {
 
         void Simulation::addObject(M::Mesh *pObject) {
             mObjects.push_back(pObject);
+            if (pObject->getType() == M::MeshType::CLOTH) {
+                mCloths.push_back(pObject);
+            } else {
+                mRigidBodies.push_back(pObject);
+            }
         }
 
         float Simulation::getStep() {
@@ -29,5 +39,14 @@ namespace COL781 {
             }
             return nullptr;
         }
+
+        void Simulation::collisionUpdate() {
+            for (M::Mesh *cloth : mCloths) {
+                for (M::Mesh *rigidBody : mRigidBodies) {
+                    static_cast<C::Cloth*>(cloth)->checkCollision(rigidBody);
+                }
+            }
+        }
+
     }
 }

@@ -29,6 +29,7 @@ namespace COL781 {
                 void setFixedPoints(std::vector<bool>&);
                 void enablePBD(int);
                 void initialize();
+                void checkCollision(Mesh*);
         };
 
     }

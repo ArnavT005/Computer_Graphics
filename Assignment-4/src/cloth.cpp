@@ -1,8 +1,11 @@
 #include "cloth.hpp"
+#include "rigidBody.hpp"
+
+namespace R = COL781::RigidBody;
 
 namespace COL781 {
     namespace Cloth {
-        Cloth::Cloth() {
+        Cloth::Cloth() : Mesh(M::MeshType::CLOTH) {
             mInitTransform = glm::mat4(1.0f);
             mCount = 4;
             mRows = 1;
@@ -373,6 +376,12 @@ namespace COL781 {
                 mFaces[i].normal = glm::normalize(glm::cross(a, b));
             }
             mVelocity.resize(mCount, glm::vec3(0));
+        }
+
+        void Cloth::checkCollision(Mesh *mesh) {
+            for (int i = 0; i < mCount; i ++) {
+                static_cast<R::RigidBody*>(mesh)->checkCollision(mVertices[i].position, mVelocity[i]);
+            }
         }
 
     }

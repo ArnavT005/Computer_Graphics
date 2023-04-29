@@ -16,11 +16,12 @@ namespace COL781 {
                 float mAngularVelocity;
                 glm::vec3 mRotationAxis;
             public:
-                RigidBody();
+                RigidBody(M::MeshType);
                 void update(float);
                 void setInitTransform(glm::mat4);
                 void setPhysicalParameters(glm::vec3, float, glm::vec3);
                 virtual void initialize() = 0;
+                virtual void checkCollision(glm::vec3&, glm::vec3&) = 0;
         };
 
         class Sphere: public RigidBody {
@@ -31,6 +32,7 @@ namespace COL781 {
                 Sphere();
                 void setGeometricParameters(int, int, float = 0.5);
                 void initialize();
+                void checkCollision(glm::vec3&, glm::vec3&);
         };
 
         class Cylinder: public RigidBody {
@@ -45,6 +47,7 @@ namespace COL781 {
                 Rectangle();
                 void setGeometricParameters(int, int, float = 0.5, float = 0.5);
                 void initialize();
+                void checkCollision(glm::vec3&, glm::vec3&);
         };
 
     }

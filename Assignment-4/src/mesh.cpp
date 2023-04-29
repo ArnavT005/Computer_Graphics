@@ -350,13 +350,18 @@ namespace COL781 {
             return faces;
         }
 
-        Mesh::Mesh() {
+        Mesh::Mesh(MeshType type) {
+            mType = type;
             mHalfEdges.clear();
             mVertices.clear();
             mEdges.clear();
             mFaces.clear();
             mVirtualFaces.clear();
             isConnected = false;
+        }
+
+        MeshType Mesh::getType() {
+            return mType;
         }
 
         void Mesh::createRectangleMesh(int m, int n, float l, float w) {

@@ -4,7 +4,7 @@
 
 namespace COL781 {
     namespace RigidBody {
-        RigidBody::RigidBody() {
+        RigidBody::RigidBody(M::MeshType type) : Mesh(type) {
             mInitTransform = glm::mat4(1.0f);
             mLinearVelocity = glm::vec3(0);
             mAngularVelocity = 0;
@@ -39,7 +39,7 @@ namespace COL781 {
             mRotationAxis = rotationAxis;
         }
 
-        Sphere::Sphere() {
+        Sphere::Sphere() : RigidBody(M::MeshType::RIGID_SPHERE) {
             mRadius = 0.5f;
             mLongitude = mLatitude = 8;
         }
@@ -63,7 +63,11 @@ namespace COL781 {
             }
         }
 
-        Rectangle::Rectangle() {
+        void Sphere::checkCollision(glm::vec3 &pos, glm::vec3 &vel) {
+
+        }
+
+        Rectangle::Rectangle() : RigidBody(M::MeshType::RIGID_RECTANGLE) {
             mRows = 1;
             mCols = 1;
             mLength = 0.5f;
@@ -88,6 +92,10 @@ namespace COL781 {
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = glm::normalize(glm::cross(a, b));
             }
+        }
+
+        void Rectangle::checkCollision(glm::vec3 &pos, glm::vec3 &vel) {
+            
         }
 
     }

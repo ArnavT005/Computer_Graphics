@@ -149,6 +149,10 @@ namespace COL781 {
 				for (int i = 0; i < numObjects; i ++) {
 					M::Mesh *obj = pSimulation->getObject(i);
 					obj->update(step);
+				}
+				pSimulation->collisionUpdate();
+				for (int i = 0; i < numObjects; i ++) {
+					M::Mesh *obj = pSimulation->getObject(i);
 					obj->send(this);
 
 					r.setUniform(program, "modelView", view*model);

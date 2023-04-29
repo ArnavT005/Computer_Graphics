@@ -66,8 +66,16 @@ namespace COL781 {
             std::vector<int> getAdjacentFaces();
         };
         
+        enum MeshType {
+            CLOTH,
+            RIGID_SPHERE,
+            RIGID_CYLINDER,
+            RIGID_RECTANGLE
+        };
+
         class Mesh {
             protected:
+                MeshType mType;
                 std::vector<std::vector<HalfEdge>> mHalfEdges;
                 std::vector<Vertex> mVertices;
                 std::vector<Edge> mEdges;
@@ -88,7 +96,8 @@ namespace COL781 {
                 std::vector<glm::ivec3> getFaces();
 
             public:
-                Mesh();
+                Mesh(MeshType);
+                MeshType getType();
                 void createRectangleMesh(int, int, float = 0.5, float = 0.5);
                 void createSphereMesh(int, int, float = 0.5);
                 void createCylinderMesh(int, float = 0.5, float = 0.25);
