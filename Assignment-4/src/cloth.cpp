@@ -11,32 +11,137 @@ namespace COL781 {
             mWidth = 0.5f;
             mMass = 1.0f;
             mRadius = 0.05;
-            mStruct = 1;
-            mShear = 0.5;
-            mBend = 0.1;
-            mDamp = 0.05;
+            mStruct = {100, 20};
+            mShear = {50, 10};
+            mBend = {10, 2};
             mVelocity.clear();
             mFixed.clear();
             mPBD = false;
         }
 
         void Cloth::update(float step) {
+            float hL = 2 * mLength / mCols;
+            float vL = 2 * mWidth / mRows;
+            float dL = glm::sqrt(vL * vL + hL * hL);
             if (mPBD) {
 
             } else {
-                std::vector<glm::vec3> force(mCount, glm::vec3(0));
+                std::vector<std::vector<glm::vec3>> force(mRows + 1, std::vector<glm::vec3>(mCols + 1, mMass * glm::vec3(0, -9.8, 0)));
                 for (int i = 0; i <= mRows; i ++) {
                     for (int j = 0; j <= mCols; j ++) {
                         if (mFixed[i * (mCols + 1) + j]) {
                             continue;
                         }
-                        // calculate force on each particle
-                        force[i * (mCols + 1) + j] = glm::vec3(0, -0.005, 0);
+                        glm::vec3 pos = mVertices[i * (mCols + 1) + j].position, tempPos;
+                        glm::vec3 vel = mVelocity[i * (mCols + 1) + j], tempVel;
+                        glm::vec3 unit;
+                        float len;
+                        // force from (i, j + 1)
+                        if (j < mCols) {
+                            tempPos = mVertices[i * (mCols + 1) + (j + 1)].position;
+                            tempVel = mVelocity[i * (mCols + 1) + (j + 1)];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mStruct.first * (len - hL) + mStruct.second * (glm::dot(vel - tempVel, unit))) * unit / hL;
+                            // force from (i, j + 2)
+                            if (j < mCols - 1) {
+                                tempPos = mVertices[i * (mCols + 1) + (j + 2)].position;
+                                tempVel = mVelocity[i * (mCols + 1) + (j + 2)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mBend.first * (len - (2 * hL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * hL);
+                            }
+                        }
+                        // force from (i, j - 1)
+                        if (j > 0) {
+                            tempPos = mVertices[i * (mCols + 1) + (j - 1)].position;
+                            tempVel = mVelocity[i * (mCols + 1) + (j - 1)];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mStruct.first * (len - hL) + mStruct.second * (glm::dot(vel - tempVel, unit))) * unit / hL;
+                            // force from (i, j - 2)
+                            if (j > 1) {
+                                tempPos = mVertices[i * (mCols + 1) + (j - 2)].position;
+                                tempVel = mVelocity[i * (mCols + 1) + (j - 2)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mBend.first * (len - (2 * hL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * hL);
+                            }
+                        }
+                        // force from (i + 1, j)
+                        if (i < mRows) {
+                            tempPos = mVertices[(i + 1) * (mCols + 1) + j].position;
+                            tempVel = mVelocity[(i + 1) * (mCols + 1) + j];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mStruct.first * (len - vL) + mStruct.second * (glm::dot(vel - tempVel, unit))) * unit / vL;
+                            // force from (i + 1, j + 1)
+                            if (j < mCols) {
+                                tempPos = mVertices[(i + 1) * (mCols + 1) + (j + 1)].position;
+                                tempVel = mVelocity[(i + 1) * (mCols + 1) + (j + 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                            // force from (i + 1, j - 1)
+                            if (j > 0) {
+                                tempPos = mVertices[(i + 1) * (mCols + 1) + (j - 1)].position;
+                                tempVel = mVelocity[(i + 1) * (mCols + 1) + (j - 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                        }
+                        // force from (i - 1, j)
+                        if (i > 0) {
+                            tempPos = mVertices[(i - 1) * (mCols + 1) + j].position;
+                            tempVel = mVelocity[(i - 1) * (mCols + 1) + j];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mStruct.first * (len - vL) + mStruct.second * (glm::dot(vel - tempVel, unit))) * unit / vL;
+                            // force from (i - 1, j + 1)
+                            if (j < mCols) {
+                                tempPos = mVertices[(i - 1) * (mCols + 1) + (j + 1)].position;
+                                tempVel = mVelocity[(i - 1) * (mCols + 1) + (j + 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                            // force from (i - 1, j - 1)
+                            if (j > 0) {
+                                tempPos = mVertices[(i - 1) * (mCols + 1) + (j - 1)].position;
+                                tempVel = mVelocity[(i - 1) * (mCols + 1) + (j - 1)];
+                                len = glm::length(pos - tempPos);
+                                unit = (pos - tempPos) / len;
+                                force[i][j] -= (mShear.first * (len - dL) + mShear.second * (glm::dot(vel - tempVel, unit))) * unit / dL;
+                            }
+                        }
+                        // force from (i + 2, j)
+                        if (i < mRows - 1) {
+                            tempPos = mVertices[(i + 2) * (mCols + 1) + j].position;
+                            tempVel = mVelocity[(i + 2) * (mCols + 1) + j];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mBend.first * (len - (2 * vL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * vL);
+                        }
+                        // force from (i - 2, j)
+                        if (i > 1) {
+                            tempPos = mVertices[(i - 2) * (mCols + 1) + j].position;
+                            tempVel = mVelocity[(i - 2) * (mCols + 1) + j];
+                            len = glm::length(pos - tempPos);
+                            unit = (pos - tempPos) / len;
+                            force[i][j] -= (mBend.first * (len - (2 * vL)) + mBend.second * (glm::dot(vel - tempVel, unit))) * unit / (2 * vL);
+                        }   
                     }
                 }
-                for (int i = 0; i < mCount; i ++) {
-                    mVelocity[i] += step * force[i] / mMass;
-                    mVertices[i].position += step * mVelocity[i];
+                for (int i = 0; i <= mRows; i ++) {
+                    for (int j = 0; j <= mCols; j ++) {
+                        if (mFixed[i * (mCols + 1) + j]) {
+                            continue;
+                        }
+                        mVelocity[i * (mCols + 1) + j] += step * force[i][j] / mMass;
+                        mVertices[i * (mCols + 1) + j].position += step * mVelocity[i * (mCols + 1) + j];
+                    }
                 }
             }
             for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
@@ -59,13 +164,12 @@ namespace COL781 {
             mWidth = width;
         }
 
-        void Cloth::setPhysicalParameters(float mass, float radius, float kStruct, float kShear, float kBend, float kDamp) {
+        void Cloth::setPhysicalParameters(float mass, float radius, std::pair<float, float> kStruct, std::pair<float, float> kShear, std::pair<float, float> kBend) {
             mMass = mass;
             mRadius = radius;
             mStruct = kStruct;
             mShear = kShear;
             mBend = kBend;
-            mDamp = kDamp;          
         }
 
         void Cloth::setFixedPoints(std::vector<bool> &fixed) {

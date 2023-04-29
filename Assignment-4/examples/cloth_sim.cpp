@@ -15,16 +15,16 @@ int main() {
 	if (!v.initialize("Cloth", 640, 480)) {
 		return EXIT_FAILURE;
 	}
-    glm::mat4 transform = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0, 1, -0.5)), glm::pi<float>() / 2.0f, glm::vec3(1, 0, 0));
+    glm::mat4 transform = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.6, -1)), glm::pi<float>() / 2.0f, glm::vec3(1, 0, 0));
     c.setInitTransform(transform);
-    int m = 1, n = 1;
+    int m = 4, n = 4;
     c.setGeometricParameters(m, n);
-    c.setPhysicalParameters(1, 0.05, 1, 0.5, 0.1, 0.05);
+    c.setPhysicalParameters(1, 0.05, {500, 100}, {250, 50}, {50, 10});
     std::vector<bool> fixed((m + 1) * (n + 1), false);
     fixed[0] = fixed[n] = true;
     c.setFixedPoints(fixed);
     c.initialize();
-    s.setStep(0.0005);
+    s.setStep(0.0003);
     s.addObject(&c);
     v.view(&s);
 }

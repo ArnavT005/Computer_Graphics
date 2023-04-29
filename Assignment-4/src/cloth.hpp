@@ -15,7 +15,7 @@ namespace COL781 {
                 int mRows, mCols;
                 float mLength, mWidth;
                 float mMass, mRadius;
-                float mStruct, mShear, mBend, mDamp;
+                std::pair<float, float> mStruct, mShear, mBend;
                 std::vector<glm::vec3> mVelocity;
                 std::vector<bool> mFixed;
                 bool mPBD;
@@ -25,7 +25,7 @@ namespace COL781 {
                 void update(float);
                 void setInitTransform(glm::mat4);
                 void setGeometricParameters(int, int, float = 0.5, float = 0.5);
-                void setPhysicalParameters(float, float, float, float, float, float);
+                void setPhysicalParameters(float, float, std::pair<float, float>, std::pair<float, float>, std::pair<float, float>);
                 void setFixedPoints(std::vector<bool>&);
                 void enablePBD(int);
                 void initialize();
