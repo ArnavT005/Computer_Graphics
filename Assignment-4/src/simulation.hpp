@@ -16,7 +16,7 @@ namespace COL781 {
                 std::vector<M::Mesh*> mCloths;
                 std::vector<M::Mesh*> mRigidBodies;
                 B::Bone *pMRoot;
-                std::vector<int> mTimeSteps;
+                std::vector<long long> mTimeSteps;
                 std::vector<std::vector<float>> mAnimationControls;
                 std::vector<std::vector<float>> mAnimationControlDerivates;
                 int mActiveIndex;
@@ -25,7 +25,7 @@ namespace COL781 {
                 void setStep(float);
                 void addObject(M::Mesh*);
                 void addCharacter(B::Bone*);
-                void setKeyframes(std::vector<int>&, std::vector<std::vector<float>>&);
+                void setKeyframes(std::vector<long long>&, std::vector<std::vector<float>>&);
                 void interpolateKeyframes();
                 void updateCharacter();
                 void updateStepCounter();
