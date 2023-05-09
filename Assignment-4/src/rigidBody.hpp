@@ -19,6 +19,7 @@ namespace COL781 {
             public:
                 RigidBody(M::MeshType);
                 void update(float);
+                void update(glm::mat4);
                 void setInitTransform(glm::mat4);
                 void setPhysicalParameters(glm::vec3, float, glm::vec3, glm::vec3);
                 void setCollisionParameters(float, float);

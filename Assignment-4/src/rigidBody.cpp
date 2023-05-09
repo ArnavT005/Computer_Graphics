@@ -30,7 +30,19 @@ namespace COL781 {
                 glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
                 mFaces[i].normal = glm::normalize(glm::cross(a, b));
             }
-        }   
+        }
+
+        void RigidBody::update(glm::mat4 transform) {
+            for (int i = 0; i < mVertices.size(); i ++) {
+                mVertices[i].position = glm::vec3(transform * glm::vec4(mVertices[i].position, 1));
+                mVertices[i].normal = glm::vec3(glm::inverse(glm::transpose(transform)) * glm::vec4(mVertices[i].normal, 0));
+            }
+            for (int i = 0; i < mFaces.size() - mVirtualFaces.size(); i ++) {
+                glm::vec3 a = mVertices[mFaces[i].indices[1]].position - mVertices[mFaces[i].indices[0]].position;
+                glm::vec3 b = mVertices[mFaces[i].indices[2]].position - mVertices[mFaces[i].indices[0]].position;
+                mFaces[i].normal = glm::normalize(glm::cross(a, b));
+            }
+        }
 
         void RigidBody::setInitTransform(glm::mat4 initTransform) {
             mInitTransform = initTransform;
