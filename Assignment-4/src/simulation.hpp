@@ -28,6 +28,7 @@ namespace COL781 {
                 void addCharacter(B::Bone*);
                 void setKeyframes(std::vector<int>&, std::vector<std::vector<float>>&);
                 void interpolateKeyframes();
+                void updateCharacter();
                 void updateStepCounter();
                 void updateActiveFrame();
                 float getStep();

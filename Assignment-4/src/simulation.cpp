@@ -69,6 +69,22 @@ namespace COL781 {
             }
         }
 
+        void Simulation::updateCharacter() {
+            if (mActiveIndex == mTimeSteps.size() - 1) {
+                return;
+            }
+            float timeElapsed = (mStepCounter - mTimeSteps[mActiveIndex]) / (mTimeSteps[mActiveIndex + 1] - mTimeSteps[mActiveIndex]);
+            int n = mAnimationControls.size(), m = mAnimationControls[0].size();
+            std::vector<float> animationControls(m);
+            float t3 = powf(timeElapsed, 3), t2 = powf(timeElapsed, 2), t1 = timeElapsed;
+            for (int j = 0; j < m; j ++) {
+                animationControls[j] = (2 * t3 - 3 * t2 + 1) * mAnimationControls[mActiveIndex][j] + (t3 - 2 * t2 + t1) * mAnimationControlDerivates[mActiveIndex][j] + (-2 * t3 + 3 * t2) * mAnimationControls[mActiveIndex + 1][j] + (t3 - t2) * mAnimationControlDerivates[mActiveIndex + 1][j];
+            }
+            int index = 0;
+            pMRoot->setAnimationControls(animationControls, index);
+            pMRoot->update(glm::mat4(1.0f));
+        }
+
         void Simulation::updateStepCounter() {
             mStepCounter ++;
         }

@@ -30,7 +30,7 @@ namespace COL781 {
             mChildren.push_back(pChild);
         }
 
-        void Bone::update(glm::mat4 &parentTransform) {
+        void Bone::update(glm::mat4 parentTransform) {
             glm::mat4 myTransform = parentTransform * getTransform();
             pMCollider->update(myTransform);
             for (Bone *child : mChildren) {

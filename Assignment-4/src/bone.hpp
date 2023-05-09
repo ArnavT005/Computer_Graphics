@@ -21,7 +21,7 @@ namespace COL781 {
                 void setParent(Bone*, glm::vec3, glm::vec3, float);
                 void setCollider(R::RigidBody*);
                 void addChild(Bone*);
-                void update(glm::mat4&);
+                void update(glm::mat4);
                 void setAnimationControls(std::vector<float>&, int&);
                 std::vector<float> getAnimationControls();
                 std::vector<M::Mesh*> getRigidBodies();
