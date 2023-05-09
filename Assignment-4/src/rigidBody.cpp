@@ -156,21 +156,37 @@ namespace COL781 {
         }
 
         void Cylinder::checkCollision(glm::vec3 &pos, glm::vec3 &vel, float mass, float radius) {
-            // write code to check for collision and collision resolution
-            glm::vec3 center = (mVertices.back().position + mVertices[0].position) / 2.0f;
-            glm::vec3 n = glm::normalize(pos - center);
-            float dist = glm::length(pos - center) - (mRadius + radius);
-            if (dist >= 0) {
+            int numVertices = mVertices.size();
+            glm::vec3 n1 = glm::normalize(mVertices[numVertices - 2].position - mVertices[numVertices - 1].position), n2 = - n1;
+            float dist1 = glm::dot(n1, pos - mVertices[numVertices - 2].position) - radius, dist2 = glm::dot(n2, pos - mVertices[numVertices - 1].position) - radius;
+            if (dist1 >= 0 || dist2 >= 0) {
                 return;
+            }
+            glm::vec3 normalComponent = (pos - mVertices[numVertices - 1].position) - glm::dot(n1, (pos - mVertices[numVertices - 1].position)) * n1;
+            float dist3 = glm::length(normalComponent) - (mRadius + radius);
+            glm::vec3 n3 = glm::normalize(normalComponent);
+            if (dist3 >= 0) {
+                return;
+            }
+            glm::vec3 n;
+            float dist;
+            if (dist1 >= dist2 && dist1 >= dist3) {
+                n = n1;
+                dist = dist1;
+            } else if (dist2 >= dist1 && dist2 >= dist3) {
+                n = n2;
+                dist = dist2;
+            } else {
+                n = n3;
+                dist = dist3;
             }
             if (glm::dot(vel, n) < 0) {
                 glm::vec3 nI = - (1.0f + mRestitution) * mass * glm::dot(vel, n) * n;
                 glm::vec3 tV = vel - glm::dot(vel, n) * n;
-                glm::vec3 tI = - glm::min(mFriction * glm::length(nI), mass * glm::length(tV)) * tV / glm::length(tV);
+                glm::vec3 tI = glm::length(tV) == 0 ? glm::vec3(0) : - glm::min(mFriction * glm::length(nI), mass * glm::length(tV)) * tV / glm::length(tV);
                 vel += (nI + tI) / mass;
             }
             pos -= dist * n;
-
         }
 
     }
