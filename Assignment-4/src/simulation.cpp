@@ -14,6 +14,8 @@ namespace COL781 {
             pMRoot == nullptr;
             mTimeSteps.clear();
             mAnimationControls.clear();
+            mAnimationControlDerivates.clear();
+            mActiveIndex = 0;
         }
 
         void Simulation::setStep(float step) {
@@ -42,11 +44,41 @@ namespace COL781 {
             int n = timeSteps.size(), m = animationControls[0].size();
             mTimeSteps.resize(n);
             mAnimationControls.resize(n, std::vector<float>(m));
+            mAnimationControlDerivates.resize(n, std::vector<float>(m));
             for (int i = 0; i < n; i ++) {
                 mTimeSteps[i] = timeSteps[i];
                 for (int j = 0; j < m; j ++) {
                     mAnimationControls[i][j] = animationControls[i][j];
                 }
+            }
+        }
+
+        void Simulation::interpolateKeyframes() {
+            int n = mAnimationControls.size(), m = mAnimationControls[0].size();
+            for (int j = 0; j < m; j ++) {
+                mAnimationControlDerivates[0][j] = (mAnimationControls[1][j] - mAnimationControls[0][j]) / ((mTimeSteps[1] - mTimeSteps[0]) * mStep);
+                mAnimationControlDerivates[n - 1][j] = (mAnimationControls[n - 1][j] - mAnimationControls[n - 2][j]) / ((mTimeSteps[n - 1] - mTimeSteps[n - 2]) * mStep);
+            }
+            for (int i = 1; i < n - 1; i ++) {
+                for (int j = 0; j < m; j ++) {
+                    float rightDerivative = (mAnimationControls[i + 1][j] - mAnimationControls[i][j]) / ((mTimeSteps[i + 1] - mTimeSteps[i]) * mStep);
+                    float leftDerivative = (mAnimationControls[i][j] - mAnimationControls[i - 1][j]) / ((mTimeSteps[i] - mTimeSteps[i - 1]) * mStep);
+                    int leftTime = mTimeSteps[i] - mTimeSteps[i - 1], rightTime = mTimeSteps[i + 1] - mTimeSteps[i];
+                    mAnimationControlDerivates[i][j] = (leftTime * rightDerivative + rightTime * leftDerivative) / (leftTime + rightTime);
+                }
+            }
+        }
+
+        void Simulation::updateStepCounter() {
+            mStepCounter ++;
+        }
+
+        void Simulation::updateActiveFrame() {
+            if (mActiveIndex == mTimeSteps.size() - 1) {
+                return;
+            }
+            if (mStepCounter == mTimeSteps[mActiveIndex + 1]) {
+                mActiveIndex ++;
             }
         }
 

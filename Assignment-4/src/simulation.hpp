@@ -18,12 +18,18 @@ namespace COL781 {
                 B::Bone *pMRoot;
                 std::vector<int> mTimeSteps;
                 std::vector<std::vector<float>> mAnimationControls;
+                std::vector<std::vector<float>> mAnimationControlDerivates;
+                int mActiveIndex;
             public:
                 Simulation();
                 void setStep(float);
+                void setStepCounter();
                 void addObject(M::Mesh*);
                 void addCharacter(B::Bone*);
                 void setKeyframes(std::vector<int>&, std::vector<std::vector<float>>&);
+                void interpolateKeyframes();
+                void updateStepCounter();
+                void updateActiveFrame();
                 float getStep();
                 long long getStepCounter();
                 int getObjectCount();
