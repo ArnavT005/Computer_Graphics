@@ -421,36 +421,28 @@ namespace COL781 {
         }
 
         void Mesh::createCylinderMesh(int n, float l, float r) {
-            // create cylindrcal mesh
-            // approximate as a prism with polygon having 'n' sides
-            // half length of prism is 'l'
-            // radius of prism is 'r' (radius of circumcircle of polygon face)
             destroy();
-            std::vector<glm::vec3> vertices, normals;
+            std::vector<glm::vec3> vertices;
             std::vector<glm::ivec3> triangles;
             for (int i = 0; i < n; i ++) {
                 double phi = 2 * i * glm::pi<double>() / n;
                 vertices.push_back(glm::vec3(r * glm::cos(phi), r * glm::sin(phi), l));
-                normals.push_back(glm::vec3(glm::cos(phi), glm::sin(phi), 0));
                 vertices.push_back(glm::vec3(r * glm::cos(phi), r * glm::sin(phi), -l));
-                normals.push_back(glm::vec3(glm::cos(phi), glm::sin(phi), 0));
+            }
+            for (int i = 0; i < n; i ++) {
+                triangles.push_back(glm::ivec3(2 * i, 2 * i + 1, (2 * i + 2) % (2 * n)));
+                triangles.push_back(glm::ivec3(2 * i + 1, (2 * i + 3) % (2 * n), (2 * i + 2) % (2 * n)));
             }
             vertices.push_back(glm::vec3(0, 0, l));
-            normals.push_back(glm::vec3(0, 0, 1));
             vertices.push_back(glm::vec3(0, 0, -l));
-            normals.push_back(glm::vec3(0, 0, -1));
             for (int i = 0; i < n; i ++) {
-                triangles.push_back(glm::ivec3(2 * i, 2 * i + 1, 2 * i + 2));
-                triangles.push_back(glm::ivec3(2 * i + 1, 2 * i + 3, 2 * i + 2));
+                triangles.push_back(glm::ivec3(2 * n, 2 * i, (2 * i + 2) % (2 * n)));
+                triangles.push_back(glm::ivec3(2 * i + 1, 2 * n + 1, (2 * i + 3) % (2 * n)));
             }
-            for (int i = 0; i < n; i ++) {
-                triangles.push_back(glm::ivec3(2 * n, 2 * i, 2 * i + 2));
-                triangles.push_back(glm::ivec3(2 * i + 1, 2 * n + 1, 2 * i + 3));
-            }
-            setVertices(2 * n + 2, vertices.data(), normals.data());
+            setVertices(2 * n + 2, vertices.data());
             setFaces(4 * n, triangles.data());
             connect();
-            
+            computeAndSetVertexNormals();
         }
 
         void Mesh::send(V::Viewer *pViewer) {
