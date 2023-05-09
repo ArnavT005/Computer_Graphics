@@ -150,6 +150,7 @@ namespace COL781 {
 					M::Mesh *obj = pSimulation->getObject(i);
 					obj->update(step);
 				}
+				pSimulation->updateCharacter();
 				pSimulation->collisionUpdate();
 				for (int i = 0; i < numObjects; i ++) {
 					M::Mesh *obj = pSimulation->getObject(i);
@@ -169,7 +170,27 @@ namespace COL781 {
 					r.setUniform(program, "objectColor", glm::vec3(0.0f, 0.0f, 0.0f));
 					r.drawObject(object);
 				}
+				std::vector<M::Mesh*> characterObjects = pSimulation->getCharacterObjects();
+				for (M::Mesh *obj : characterObjects) {
+					obj->send(this);
+
+					r.setUniform(program, "modelView", view*model);
+					r.setUniform(program, "projection", projection);
+					r.setUniform(program, "lightPos", camera.position);
+					r.setUniform(program, "viewPos", camera.position);
+					r.setUniform(program, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+
+					r.setupFilledFaces();
+					r.setUniform(program, "objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
+					r.drawObject(object);
+
+					r.setupWireFrame();
+					r.setUniform(program, "objectColor", glm::vec3(0.0f, 0.0f, 0.0f));
+					r.drawObject(object);
+				}
 				r.show();
+				pSimulation->updateStepCounter();
+				pSimulation->updateActiveFrame();
 			}
 		}
 

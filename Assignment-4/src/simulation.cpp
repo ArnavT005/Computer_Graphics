@@ -11,7 +11,7 @@ namespace COL781 {
             mObjects.clear();
             mCloths.clear();
             mRigidBodies.clear();
-            pMRoot == nullptr;
+            pMRoot = nullptr;
             mTimeSteps.clear();
             mAnimationControls.clear();
             mAnimationControlDerivates.clear();
@@ -70,7 +70,7 @@ namespace COL781 {
         }
 
         void Simulation::updateCharacter() {
-            if (mActiveIndex == mTimeSteps.size() - 1) {
+            if (pMRoot == nullptr || mActiveIndex == mTimeSteps.size() - 1) {
                 return;
             }
             float timeElapsed = (mStepCounter - mTimeSteps[mActiveIndex]) / (mTimeSteps[mActiveIndex + 1] - mTimeSteps[mActiveIndex]);
@@ -90,7 +90,7 @@ namespace COL781 {
         }
 
         void Simulation::updateActiveFrame() {
-            if (mActiveIndex == mTimeSteps.size() - 1) {
+            if (pMRoot == nullptr || mActiveIndex == mTimeSteps.size() - 1) {
                 return;
             }
             if (mStepCounter == mTimeSteps[mActiveIndex + 1]) {
@@ -100,10 +100,6 @@ namespace COL781 {
 
         float Simulation::getStep() {
             return mStep;
-        }
-
-        long long Simulation::getStepCounter() {
-            return mStepCounter;
         }
 
         int Simulation::getObjectCount() {
@@ -117,8 +113,11 @@ namespace COL781 {
             return nullptr;
         }
 
-        B::Bone* Simulation::getCharacter() {
-            return pMRoot;
+        std::vector<M::Mesh*> Simulation::getCharacterObjects() {
+            if (pMRoot == nullptr) {
+                return std::vector<M::Mesh*>();
+            }
+            return pMRoot->getRigidBodies();
         }
 
         void Simulation::collisionUpdate() {

@@ -23,7 +23,6 @@ namespace COL781 {
             public:
                 Simulation();
                 void setStep(float);
-                void setStepCounter();
                 void addObject(M::Mesh*);
                 void addCharacter(B::Bone*);
                 void setKeyframes(std::vector<int>&, std::vector<std::vector<float>>&);
@@ -32,10 +31,9 @@ namespace COL781 {
                 void updateStepCounter();
                 void updateActiveFrame();
                 float getStep();
-                long long getStepCounter();
                 int getObjectCount();
                 M::Mesh* getObject(int);
-                B::Bone* getCharacter();
+                std::vector<M::Mesh*> getCharacterObjects();
                 void collisionUpdate();
         };
 
