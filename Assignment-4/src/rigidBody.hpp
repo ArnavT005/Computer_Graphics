@@ -14,13 +14,13 @@ namespace COL781 {
                 glm::mat4 mInitTransform;
                 glm::vec3 mLinearVelocity;
                 float mAngularVelocity;
-                glm::vec3 mRotationAxis;
+                glm::vec3 mRotationAxis, mRotationPoint;
                 float mRestitution, mFriction;
             public:
                 RigidBody(M::MeshType);
                 void update(float);
                 void setInitTransform(glm::mat4);
-                void setPhysicalParameters(glm::vec3, float, glm::vec3);
+                void setPhysicalParameters(glm::vec3, float, glm::vec3, glm::vec3);
                 void setCollisionParameters(float, float);
                 virtual void initialize() = 0;
                 virtual void checkCollision(glm::vec3&, glm::vec3&, float, float) = 0;

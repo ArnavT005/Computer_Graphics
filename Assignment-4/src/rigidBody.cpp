@@ -9,6 +9,7 @@ namespace COL781 {
             mLinearVelocity = glm::vec3(0);
             mAngularVelocity = 0;
             mRotationAxis = glm::vec3(0);
+            mRotationPoint = glm::vec3(0);
             mRestitution = 0;
             mFriction = 0;
         }
@@ -16,7 +17,7 @@ namespace COL781 {
         void RigidBody::update(float step) {
             glm::mat4 transform = glm::mat4(1.0f);
             if (mAngularVelocity > 1e-6) {
-                transform = glm::rotate(glm::mat4(1.0f), mAngularVelocity * step, mRotationAxis);
+                transform = glm::translate(glm::rotate(glm::translate(glm::mat4(1.0f), mRotationPoint), mAngularVelocity * step, mRotationAxis), - mRotationPoint);
             } else {
                 transform = glm::translate(glm::mat4(1.0f), mLinearVelocity * step);
             }
@@ -35,10 +36,11 @@ namespace COL781 {
             mInitTransform = initTransform;
         }
 
-        void RigidBody::setPhysicalParameters(glm::vec3 linearVelocity, float angularVelocity, glm::vec3 rotationAxis) {
+        void RigidBody::setPhysicalParameters(glm::vec3 linearVelocity, float angularVelocity, glm::vec3 rotationAxis, glm::vec3 rotationPoint) {
             mLinearVelocity = linearVelocity;
             mAngularVelocity = angularVelocity;
             mRotationAxis = rotationAxis;
+            mRotationPoint = rotationPoint;
         }
 
         void RigidBody::setCollisionParameters(float restitution, float friction) {
