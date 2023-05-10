@@ -42,7 +42,7 @@ namespace COL781 {
             mRigidBodies.insert(mRigidBodies.end(), rigidBodies.begin(), rigidBodies.end());
         }
 
-        void Simulation::setKeyframes(std::vector<long long> &timeSteps, std::vector<std::vector<float>> &animationControls) {
+        void Simulation::setKeyframes(std::vector<int> &timeSteps, std::vector<std::vector<float>> &animationControls) {
             int n = timeSteps.size(), m = animationControls[0].size();
             mTimeSteps.resize(n);
             mAnimationControls.resize(n, std::vector<float>(m));
@@ -65,7 +65,7 @@ namespace COL781 {
                 for (int j = 0; j < m; j ++) {
                     float rightDerivative = (mAnimationControls[i + 1][j] - mAnimationControls[i][j]) / ((mTimeSteps[i + 1] - mTimeSteps[i]) * mStep);
                     float leftDerivative = (mAnimationControls[i][j] - mAnimationControls[i - 1][j]) / ((mTimeSteps[i] - mTimeSteps[i - 1]) * mStep);
-                    long long leftTime = mTimeSteps[i] - mTimeSteps[i - 1], rightTime = mTimeSteps[i + 1] - mTimeSteps[i];
+                    int leftTime = mTimeSteps[i] - mTimeSteps[i - 1], rightTime = mTimeSteps[i + 1] - mTimeSteps[i];
                     mAnimationControlDerivates[i][j] = (leftTime * rightDerivative + rightTime * leftDerivative) / (leftTime + rightTime);
                 }
             }
