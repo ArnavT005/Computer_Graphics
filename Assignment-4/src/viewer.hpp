@@ -40,7 +40,7 @@ namespace COL781 {
 			void setVertices(int n, const glm::vec3* vertices);
 			void setNormals(int n, const glm::vec3* normals);
 			void setTriangles(int n, const glm::ivec3* triangles);
-			void view(S::Simulation*);
+			void view(S::Simulation*, glm::mat4=glm::mat4(1.0f));
 		private:
 			COL781::OpenGL::Rasterizer r;
 			COL781::OpenGL::ShaderProgram program;

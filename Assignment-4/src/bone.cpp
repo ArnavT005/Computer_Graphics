@@ -32,7 +32,9 @@ namespace COL781 {
         }
 
         void Bone::update(glm::mat4 parentTransform) {
+            glm::mat4 tempBoneTransform = glm::inverse(mBoneTransform);
             mBoneTransform = parentTransform * getTransform();
+            pMCollider->update(mBoneTransform * tempBoneTransform);
             for (Bone *child : mChildren) {
                 child->update(mBoneTransform);
             }
