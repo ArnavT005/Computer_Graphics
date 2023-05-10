@@ -1,8 +1,6 @@
 #include "simulation.hpp"
 #include "cloth.hpp"
 
-#include <iostream>
-
 namespace C = COL781::Cloth;
 
 namespace COL781 {
@@ -68,13 +66,6 @@ namespace COL781 {
                     int leftTime = mTimeSteps[i] - mTimeSteps[i - 1], rightTime = mTimeSteps[i + 1] - mTimeSteps[i];
                     mAnimationControlDerivates[i][j] = (leftTime * rightDerivative + rightTime * leftDerivative) / (leftTime + rightTime);
                 }
-            }
-            for (int i = 0; i < n; i ++) {
-                std::cout << "Keyframe: " << i << " " << mTimeSteps[i] << "; ";
-                for (int j = 0; j < m; j ++) {
-                    std::cout << mAnimationControls[i][j] << " " << mAnimationControlDerivates[i][j] << "; ";
-                }
-                std::cout << std::endl;
             }
         }
 

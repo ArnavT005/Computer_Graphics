@@ -4,8 +4,6 @@
 #include "../src/rigidBody.hpp"
 #include "../src/bone.hpp"
 
-#include <iostream>
-
 namespace V = COL781::Viewer;
 namespace C = COL781::Cloth;
 namespace S = COL781::Simulation;
