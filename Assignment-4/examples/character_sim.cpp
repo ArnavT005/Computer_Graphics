@@ -15,7 +15,7 @@ using namespace glm;
 int main() {
     S::Simulation s;
 	V::Viewer v;
-	if (!v.initialize("Cloth", 640, 480)) {
+	if (!v.initialize("Character", 640, 480)) {
 		return EXIT_FAILURE;
 	}
     

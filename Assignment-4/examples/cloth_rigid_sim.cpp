@@ -14,7 +14,7 @@ int main() {
     S::Simulation s;
     C::Cloth c;
 	V::Viewer v;
-	if (!v.initialize("Cloth", 640, 480)) {
+	if (!v.initialize("Rigid Bodies and Cloth", 640, 480)) {
 		return EXIT_FAILURE;
 	}
     glm::mat4 transform = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.6, -1)), glm::pi<float>() / 2.0f, glm::vec3(1, 0, 0));
