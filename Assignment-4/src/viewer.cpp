@@ -171,10 +171,11 @@ namespace COL781 {
 					r.drawObject(object);
 				}
 				std::vector<M::Mesh*> characterObjects = pSimulation->getCharacterObjects();
-				for (M::Mesh *obj : characterObjects) {
-					obj->send(this);
+				std::vector<glm::mat4> characterTransforms = pSimulation->getCharacterTransforms();
+				for (int i = 0; i < characterObjects.size(); i ++) {
+					characterObjects[i]->send(this);
 
-					r.setUniform(program, "modelView", view*model);
+					r.setUniform(program, "modelView", view*model*characterTransforms[i]);
 					r.setUniform(program, "projection", projection);
 					r.setUniform(program, "lightPos", camera.position);
 					r.setUniform(program, "viewPos", camera.position);

@@ -13,6 +13,7 @@ namespace COL781 {
             mJointAngle = 0.0f;
             pMCollider = nullptr;
             mChildren.clear();
+            mBoneTransform = glm::mat4(1.0f);
         }
 
         void Bone::setParent(Bone *pParent, glm::vec3 position, glm::vec3 rotationAxis, float jointAngle) {
@@ -31,10 +32,9 @@ namespace COL781 {
         }
 
         void Bone::update(glm::mat4 parentTransform) {
-            glm::mat4 myTransform = parentTransform * getTransform();
-            pMCollider->update(myTransform);
+            mBoneTransform = parentTransform * getTransform();
             for (Bone *child : mChildren) {
-                child->update(myTransform);
+                child->update(mBoneTransform);
             }
         }
 
@@ -61,6 +61,15 @@ namespace COL781 {
                 rigidBodies.insert(rigidBodies.end(), childRigidBodies.begin(), childRigidBodies.end());
             }
             return rigidBodies;
+        }
+
+        std::vector<glm::mat4> Bone::getTransforms() {
+            std::vector<glm::mat4> transforms(1, mBoneTransform);
+            for (Bone *child : mChildren) {
+                std::vector<glm::mat4> childTransforms = child->getTransforms();
+                transforms.insert(transforms.end(), childTransforms.begin(), childTransforms.end());
+            }
+            return transforms;
         }
 
     }

@@ -15,6 +15,7 @@ namespace COL781 {
                 float mJointAngle;
                 R::RigidBody *pMCollider;
                 std::vector<Bone*> mChildren;
+                glm::mat4 mBoneTransform;
                 glm::mat4 getTransform();
             public:
                 Bone();
@@ -25,6 +26,7 @@ namespace COL781 {
                 void setAnimationControls(std::vector<float>&, int&);
                 std::vector<float> getAnimationControls();
                 std::vector<M::Mesh*> getRigidBodies();
+                std::vector<glm::mat4> getTransforms();
         };
     }
 }

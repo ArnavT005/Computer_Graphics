@@ -20,3 +20,6 @@ target_link_libraries(s2 a4)
 
 add_executable(s3 examples/cloth_rigid_sim.cpp)
 target_link_libraries(s3 a4)
+
+add_executable(s4 examples/character_sim.cpp)
+target_link_libraries(s4 a4)

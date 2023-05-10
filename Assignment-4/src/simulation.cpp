@@ -1,6 +1,8 @@
 #include "simulation.hpp"
 #include "cloth.hpp"
 
+#include <iostream>
+
 namespace C = COL781::Cloth;
 
 namespace COL781 {
@@ -67,13 +69,20 @@ namespace COL781 {
                     mAnimationControlDerivates[i][j] = (leftTime * rightDerivative + rightTime * leftDerivative) / (leftTime + rightTime);
                 }
             }
+            for (int i = 0; i < n; i ++) {
+                std::cout << "Keyframe: " << i << " " << mTimeSteps[i] << "; ";
+                for (int j = 0; j < m; j ++) {
+                    std::cout << mAnimationControls[i][j] << " " << mAnimationControlDerivates[i][j] << "; ";
+                }
+                std::cout << std::endl;
+            }
         }
 
         void Simulation::updateCharacter() {
-            if (pMRoot == nullptr || mActiveIndex == mTimeSteps.size() - 1) {
+            if (pMRoot == nullptr || mTimeSteps.size() == 0 || mActiveIndex == mTimeSteps.size() - 1) {
                 return;
             }
-            float timeElapsed = (mStepCounter - mTimeSteps[mActiveIndex]) / (mTimeSteps[mActiveIndex + 1] - mTimeSteps[mActiveIndex]);
+            float timeElapsed = (float) (mStepCounter - mTimeSteps[mActiveIndex]) / (mTimeSteps[mActiveIndex + 1] - mTimeSteps[mActiveIndex]);
             int n = mAnimationControls.size(), m = mAnimationControls[0].size();
             std::vector<float> animationControls(m);
             float t3 = powf(timeElapsed, 3), t2 = powf(timeElapsed, 2), t1 = timeElapsed;
@@ -90,7 +99,7 @@ namespace COL781 {
         }
 
         void Simulation::updateActiveFrame() {
-            if (pMRoot == nullptr || mActiveIndex == mTimeSteps.size() - 1) {
+            if (pMRoot == nullptr || mActiveIndex == mTimeSteps.size() - 1 || mTimeSteps.size() == 0) {
                 return;
             }
             if (mStepCounter == mTimeSteps[mActiveIndex + 1]) {
@@ -118,6 +127,13 @@ namespace COL781 {
                 return std::vector<M::Mesh*>();
             }
             return pMRoot->getRigidBodies();
+        }
+
+        std::vector<glm::mat4> Simulation::getCharacterTransforms() {
+            if (pMRoot == nullptr) {
+                return std::vector<glm::mat4>();
+            }
+            return pMRoot->getTransforms();
         }
 
         void Simulation::collisionUpdate() {

@@ -34,6 +34,7 @@ namespace COL781 {
                 int getObjectCount();
                 M::Mesh* getObject(int);
                 std::vector<M::Mesh*> getCharacterObjects();
+                std::vector<glm::mat4> getCharacterTransforms();
                 void collisionUpdate();
         };
 
